@@ -38,3 +38,9 @@ func (s *Server) Run() error {
 
 	return nil
 }
+
+func InitRouter() *chi.Mux {
+	router := chi.NewRouter()
+	//TODO: add middlewares and hadlers for routes
+	return router
+}
