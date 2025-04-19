@@ -18,10 +18,6 @@ type Server struct {
 	router *chi.Mux
 }
 
-const (
-	gracefulTime int = 15
-)
-
 func New(cfg *config.Config, router *chi.Mux) *Server {
 	return &Server{
 		cfg:    cfg,
@@ -52,7 +48,7 @@ func (s *Server) Run() error {
 	<-quit
 	fmt.Printf("\n\nSERVER STOPPING\n\n")
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(gracefulTime)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
