@@ -9,6 +9,8 @@ import (
 )
 
 type Config struct {
+	Enviroment string `yaml:"enviroment" env-default:"dev"`
+
 	Server struct {
 		Host        string        `yaml:"host" env-default:"localhost"`
 		Port        int           `yaml:"port" env-default:"9090"`
