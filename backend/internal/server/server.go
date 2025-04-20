@@ -7,21 +7,25 @@ import (
 	"os"
 	"os/signal"
 	"pixelbattle/internal/config"
+	"pixelbattle/pkg/logger"
 	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	cfg    *config.Config
 	router *chi.Mux
+	log    *logger.Logger
 }
 
-func New(cfg *config.Config, router *chi.Mux) *Server {
+func New(cfg *config.Config, router *chi.Mux, log *logger.Logger) *Server {
 	return &Server{
 		cfg:    cfg,
 		router: router,
+		log:    log,
 	}
 }
 
@@ -36,9 +40,19 @@ func (s *Server) Run() error {
 	}
 
 	go func() {
-		fmt.Printf("\n\nSERVER START ON: %v:%d\n\n", s.cfg.Server.Host, s.cfg.Server.Port)
+		s.log.WithFields(logrus.Fields{
+			"action":    "server.Run",
+			"component": "internal.server.Run",
+			"success":   true,
+		}).Infof("server starts on: %v:%d", s.cfg.Server.Host, s.cfg.Server.Port)
+
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			panic("failed to start server: " + err.Error())
+			s.log.WithFields(logrus.Fields{
+				"action":    "server.ListenAndServe",
+				"component": "internal.server.Run",
+				"success":   false,
+			}).Errorf("Failed to start server: %v", err)
+
 		}
 	}()
 
@@ -46,15 +60,28 @@ func (s *Server) Run() error {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	fmt.Printf("\n\nSERVER STOPPING\n\n")
+	s.log.WithFields(logrus.Fields{
+		"action":    "server.getChannel",
+		"component": "internal.server.Run",
+		"success":   true,
+	}).Info("Server is shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		panic("failed to stop server")
+		s.log.WithFields(logrus.Fields{
+			"action":    "server.Shutdown",
+			"component": "internal.server.Run",
+			"success":   false,
+		}).Errorf("Failed to gracefully stop the server: %v", err)
 	}
-	fmt.Printf("\nSERVER STOP\n")
+
+	s.log.WithFields(logrus.Fields{
+		"action":    "server.Shutdown",
+		"component": "internal.server.Run",
+		"success":   true,
+	}).Info("Server stopped successfully")
 
 	return nil
 }
