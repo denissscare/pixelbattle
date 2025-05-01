@@ -3,56 +3,72 @@ package config
 import (
 	"flag"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Enviroment string `yaml:"enviroment" env-default:"dev"`
+	Environment string `mapstructure:"environment"`
 
 	Server struct {
-		Host        string        `yaml:"host" env-default:"localhost"`
-		Port        int           `yaml:"port" env-default:"9090"`
-		Timeout     time.Duration `yaml:"timeout" env-default:"10s"`
-		IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"120s"`
-	} `yaml:"server"`
+		Host        string        `mapstructure:"host"`
+		Port        int           `mapstructure:"port"`
+		Timeout     time.Duration `mapstructure:"timeout"`
+		IdleTimeout time.Duration `mapstructure:"idle_timeout"`
+	} `mapstructure:"server"`
+
+	Redis struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		Password string `mapstructure:"password"`
+		User     string `mapstructure:"user"`
+		DB       int    `mapstructure:"db"`
+	} `mapstructure:"redis"`
 }
 
 func LoadConfig() *Config {
-
-	path := fetchConfigPath()
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		panic("config file does not exist: " + path)
+	if err := godotenv.Load(); err != nil {
+		panic("No .env file found, relying on real environment variables")
 	}
+	envMap, _ := godotenv.Read()
 
-	viper.SetConfigName("config")
-	viper.AddConfigPath(path)
-	viper.AutomaticEnv()
-
-	var config Config
-
-	if err := viper.ReadInConfig(); err != nil {
-		panic("failed to read config file: " + err.Error())
-	}
-
-	if err := viper.Unmarshal(&config); err != nil {
-		panic("failed to parse config")
-	}
-
-	return &config
-}
-
-func fetchConfigPath() string {
-	var path string
-
-	flag.StringVar(&path, "config", "", "path to config file")
+	var cfgDir string
+	flag.StringVar(&cfgDir, "config", "", "path to config directory")
 	flag.Parse()
 
-	if path == "" {
-		path = os.Getenv("CONFIG_PATH")
+	if cfgDir == "" {
+		cfgDir = filepath.Join(getProjectRoot(), "internal", "config")
+	}
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(cfgDir)
+
+	replacer := strings.NewReplacer(".", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err != nil {
+		panic("no config.yaml found")
 	}
 
-	return path
+	for rawKey, rawVal := range envMap {
+		key := strings.ToLower(strings.ReplaceAll(rawKey, "_", "."))
+		viper.Set(key, rawVal)
+	}
+
+	var cfg Config
+	if err := viper.Unmarshal(&cfg); err != nil {
+		panic("unable to decode into struct")
+	}
+
+	return &cfg
+}
+
+func getProjectRoot() string {
+	pwd, _ := os.Getwd()
+	return pwd
 }
