@@ -1,14 +1,47 @@
-version: '3.8'
-
 services:
-  server:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    
+  redis:
+    image: redis:7-alpine
+    container_name: redis_container
+    env_file:
+      - .env
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
     ports:
-      - "8080:8080"
-    container_name: pixcel-server
-    environment:
-      - CONFIG_PATH=./internal/config
-    restart: on-failure
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -a "$${REDIS_PASSWORD}" ping | grep PONG']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # server:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: pixel-server
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - redis
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - CONFIG_PATH=/app/internal/config
+  #   volumes:
+  #     - ./internal/config:/app/internal/config:ro
+  #   restart: on-failure
+
+volumes:
+  redisdata:
