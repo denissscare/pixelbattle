@@ -6,6 +6,9 @@ server:
   idle_timeout: 60s
 
 redis:
-  host: "localhost"
+  host: "127.0.0.1"
   port: 6379
   db: 0
+  max_retries: 5
+  dial_timeout: 10s
+  timeout: 5s
