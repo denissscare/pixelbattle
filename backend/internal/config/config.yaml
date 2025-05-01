@@ -4,3 +4,8 @@ server:
   port: 8080
   timeout: 10s
   idle_timeout: 60s
+
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
