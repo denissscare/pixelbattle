@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,11 +23,14 @@ type Config struct {
 	} `mapstructure:"server"`
 
 	Redis struct {
-		Host     string `mapstructure:"host"`
-		Port     int    `mapstructure:"port"`
-		Password string `mapstructure:"password"`
-		User     string `mapstructure:"user"`
-		DB       int    `mapstructure:"db"`
+		Host        string        `mapstructure:"host"`
+		Port        int           `mapstructure:"port"`
+		Password    string        `mapstructure:"password"`
+		User        string        `mapstructure:"user"`
+		DB          int           `mapstructure:"db"`
+		MaxRetries  int           `mapstructure:"max_retries"`
+		DialTimeout time.Duration `mapstructure:"dial_timeout"`
+		Timeout     time.Duration `mapstructure:"timeout"`
 	} `mapstructure:"redis"`
 }
 
@@ -62,7 +66,7 @@ func LoadConfig() *Config {
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-		panic("unable to decode into struct")
+		panic(fmt.Sprintf("unable to decode into struct: %v", err))
 	}
 
 	return &cfg
