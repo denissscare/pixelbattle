@@ -8,7 +8,7 @@ import (
 
 func main() {
 	config := config.LoadConfig()
-	log := logger.New(config.Enviroment)
+	log := logger.New(config.Environment)
 
 	router := server.InitRouter()
 	srv := server.New(config, router, log)
