@@ -1,0 +1,9 @@
+#macOS resource forks
+._* 
+**/._*
+.DS_Store
+
+#utils
+.git
+node_modules
+vendor
