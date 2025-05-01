@@ -1,2 +1,8 @@
 *.exe
 *.log
+.env
+
+
+# macOS metadata files
+.DS_Store
+._* 
