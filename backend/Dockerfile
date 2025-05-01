@@ -13,4 +13,4 @@ RUN go build -o main ./cmd/server/main.go
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "CONFIG_PATH=$CONFIG_PATH ./main"]
+CMD ["sh", "-c", "./main"]
