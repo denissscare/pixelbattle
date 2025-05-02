@@ -14,4 +14,4 @@ redis:
   timeout: 5s
 
 nats:
-  URL: "localhost:4222"
+  url: "localhost:4222"
