@@ -12,6 +12,8 @@ services:
         echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
         echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
         echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "save 900 1" >> /usr/local/etc/redis/redis.conf &&
+        echo "dir /data" >> /usr/local/etc/redis/redis.conf &&
         echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
@@ -25,7 +27,18 @@ services:
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
+  nats:
+    image: nats:latest
+    container_name: nats_container
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "nats-ping -s nats://localhost:4222"]
+      interval: 10s
+      timeout: 2s
+      retries: 3
   # server:
   #   build:
   #     context: .
