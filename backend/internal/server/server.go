@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/signal"
 	"pixelbattle/internal/config"
+	"pixelbattle/internal/pixcelbattle/handlers"
+	"pixelbattle/internal/pixcelbattle/service"
 	"pixelbattle/pkg/logger"
 	"syscall"
 	"time"
@@ -86,8 +88,12 @@ func (s *Server) Run() error {
 	return nil
 }
 
-func InitRouter() *chi.Mux {
+func InitRouter(svc *service.BattleService, log *logger.Logger) *chi.Mux {
 	router := chi.NewRouter()
-	//TODO: add middlewares and hadlers for routes
+
+	router.Get("/canvas", handlers.CanvasHandler(svc, log))
+	router.Post("/pixel", handlers.UpdatePixelHandler(svc, log))
+	router.Get("/ws", handlers.WSHandler(svc, log))
+
 	return router
 }
