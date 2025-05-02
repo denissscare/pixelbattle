@@ -70,3 +70,11 @@ func (l *Logger) Debugf(format string, args ...interface{}) {
 func (l *Logger) WithFields(fields logrus.Fields) *logrus.Entry {
 	return l.log.WithFields(fields)
 }
+
+func (l *Logger) Fatal(args ...interface{}) {
+	l.log.Fatal(args...)
+}
+
+func (l *Logger) Fatalf(format string, args ...interface{}) {
+	l.log.Fatalf(format, args...)
+}
