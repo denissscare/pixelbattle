@@ -32,6 +32,10 @@ type Config struct {
 		DialTimeout time.Duration `mapstructure:"dial_timeout"`
 		Timeout     time.Duration `mapstructure:"timeout"`
 	} `mapstructure:"redis"`
+
+	NATS struct {
+		URL string `mapstructure:"URL"`
+	} `mapstructure:"nats"`
 }
 
 func LoadConfig() *Config {
