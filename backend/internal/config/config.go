@@ -34,38 +34,36 @@ type Config struct {
 	} `mapstructure:"redis"`
 
 	NATS struct {
-		URL string `mapstructure:"URL"`
+		URL string `mapstructure:"url"`
 	} `mapstructure:"nats"`
 }
 
 func LoadConfig() *Config {
-	if err := godotenv.Load(); err != nil {
-		panic("No .env file found, relying on real environment variables")
-	}
-	envMap, _ := godotenv.Read()
+	_ = godotenv.Load()
 
 	var cfgDir string
 	flag.StringVar(&cfgDir, "config", "", "path to config directory")
 	flag.Parse()
-
 	if cfgDir == "" {
 		cfgDir = filepath.Join(getProjectRoot(), "internal", "config")
 	}
+
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(cfgDir)
 
-	replacer := strings.NewReplacer(".", "_")
-	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
+	viper.BindEnv("environment", "ENVIRONMENT")
+	viper.BindEnv("server.host", "SERVER_HOST")
+	viper.BindEnv("server.port", "SERVER_PORT")
+	viper.BindEnv("redis.password", "REDIS_PASSWORD")
+	viper.BindEnv("redis.user", "REDIS_USER")
+	viper.BindEnv("nats.url", "NATS_URL")
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic("no config.yaml found")
-	}
-
-	for rawKey, rawVal := range envMap {
-		key := strings.ToLower(strings.ReplaceAll(rawKey, "_", "."))
-		viper.Set(key, rawVal)
 	}
 
 	var cfg Config
