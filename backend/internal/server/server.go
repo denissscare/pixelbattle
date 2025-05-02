@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"pixelbattle/internal/config"
+	"pixelbattle/internal/middleware"
 	"pixelbattle/internal/pixcelbattle/handlers"
 	"pixelbattle/internal/pixcelbattle/service"
 	"pixelbattle/pkg/logger"
@@ -91,9 +92,10 @@ func (s *Server) Run() error {
 func InitRouter(svc *service.BattleService, log *logger.Logger) *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Get("/canvas", handlers.CanvasHandler(svc, log))
-	router.Post("/pixel", handlers.UpdatePixelHandler(svc, log))
-	router.Get("/ws", handlers.WSHandler(svc, log))
+	router.With(middleware.NoLogger).Get("/ws", handlers.WSHandler(svc, log))
+
+	router.With(middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
+	router.With(middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
 
 	return router
 }
