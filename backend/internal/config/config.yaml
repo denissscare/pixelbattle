@@ -12,3 +12,6 @@ redis:
   max_retries: 5
   dial_timeout: 10s
   timeout: 5s
+
+nats:
+  URL: "localhost:4222"
