@@ -25,7 +25,11 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 			}).Errorf("WS upgrade failed: %s", err)
 			return
 		}
-		defer conn.Close()
+		log.Infof("WS: new connection from %s", r.RemoteAddr)
+		defer func() {
+			conn.Close()
+			log.Infof("WS: client %s disconnected", r.RemoteAddr)
+		}()
 
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
@@ -41,24 +45,18 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 
 		canvas, err := svc.InitCanvas(ctx)
 		if err != nil {
-			log.WithFields(logrus.Fields{
-				"action":    "svc.InitCanvas",
-				"component": "pixcelbatlle.handlers.WSHandler",
-				"success":   false,
-			}).Errorf("Init canvas failed: %s", err)
+			log.Errorf("WS: InitCanvas error: %v", err)
 			return
 		}
 		conn.WriteJSON(map[string]interface{}{"type": "init", "payload": canvas})
+		log.Infof("WS: sent initial canvas (%d pixels) to %s", len(canvas), r.RemoteAddr)
 
 		updates, err := svc.Stream(ctx)
 		if err != nil {
-			log.WithFields(logrus.Fields{
-				"action":    "svc.Stream",
-				"component": "pixcelbatlle.handlers.WSHandler",
-				"success":   false,
-			}).Errorf("Stream error: %s", err)
+			log.Errorf("WS: Stream subscribe error: %v", err)
 			return
 		}
+		log.Infof("WS: subscribed to canvas.updates for %s", r.RemoteAddr)
 
 		for {
 			select {
@@ -80,7 +78,9 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 						"action":    "svc.Stream",
 						"component": "pixcelbatlle.handlers.WSHandler",
 						"success":   false,
-					}).Warnf("write update failed: %s", err)
+					}).Warnf("WS: write update failed for %s: %v", r.RemoteAddr, err)
+				} else {
+					log.Debugf("WS: sent update %+v to %s", px, r.RemoteAddr)
 				}
 			}
 		}
