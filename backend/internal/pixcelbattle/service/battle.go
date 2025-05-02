@@ -21,7 +21,18 @@ type BattleService struct {
 func NewBattleService(repo redis.Redis, broker broker.NatsBroker, log *logger.Logger) *BattleService {
 	return &BattleService{repo: repo, broker: broker, log: log}
 }
-
+func (s *BattleService) InitCanvas(ctx context.Context) (map[string]domain.Pixel, error) {
+	canvas, err := s.repo.GetCanvas(ctx)
+	if err != nil {
+		s.log.WithFields(logrus.Fields{
+			"action":    "GetCanvas",
+			"component": "pixcelbattle.service.InitCanvas",
+			"success":   false,
+		}).Errorf("failed to load canvas: %v", err)
+		return nil, err
+	}
+	return canvas, err
+}
 func (s *BattleService) UpdatePixel(ctx context.Context, p domain.Pixel) error {
 	if err := s.repo.SetPixcel(ctx, p); err != nil {
 		s.log.WithFields(logrus.Fields{
