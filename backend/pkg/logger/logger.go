@@ -78,3 +78,11 @@ func (l *Logger) Fatal(args ...interface{}) {
 func (l *Logger) Fatalf(format string, args ...interface{}) {
 	l.log.Fatalf(format, args...)
 }
+
+func (l *Logger) Warn(args ...interface{}) {
+	l.log.Fatal(args...)
+}
+
+func (l *Logger) Warnf(format string, args ...interface{}) {
+	l.log.Warnf(format, args...)
+}
