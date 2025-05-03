@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"pixelbattle/internal/pixcelbattle/service"
 	"pixelbattle/pkg/logger"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -66,6 +67,9 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 				if !ok {
 					return
 				}
+				if err := conn.SetWriteDeadline(time.Now().Add(5 * time.Second)); err != nil {
+					log.Warnf("WS: set deadline failed for %s: %v", r.RemoteAddr, err)
+				}
 				if err := conn.WriteJSON(map[string]interface{}{
 					"type":    "update",
 					"payload": px,
@@ -74,11 +78,7 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 					if isClose {
 						return
 					}
-					log.WithFields(logrus.Fields{
-						"action":    "svc.Stream",
-						"component": "pixcelbatlle.handlers.WSHandler",
-						"success":   false,
-					}).Warnf("WS: write update failed for %s: %v", r.RemoteAddr, err)
+					log.Warnf("WS: write update failed for %s: %v", r.RemoteAddr, err)
 				} else {
 					log.Debugf("WS: sent update %+v to %s", px, r.RemoteAddr)
 				}
