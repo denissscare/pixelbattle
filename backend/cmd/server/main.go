@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	_ "net/http/pprof"
 	"pixelbattle/internal/config"
 	"pixelbattle/internal/pixcelbattle/broker"
 	"pixelbattle/internal/pixcelbattle/service"
@@ -30,6 +33,13 @@ func main() {
 	pixelbattle := service.NewBattleService(*rds, *br, log)
 
 	router := server.InitRouter(pixelbattle, log)
+
+	go func() {
+		fmt.Println("pprof listening on http://localhost:6060/debug/pprof/")
+		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
+			log.Fatalf("pprof server failed: %v", err)
+		}
+	}()
 
 	srv := server.New(config, router, log)
 
