@@ -1,6 +1,6 @@
 enviroment: dev
 server:
-  host: "localhost"
+  host: "0.0.0.0"
   port: 8080
   timeout: 10s
   idle_timeout: 60s

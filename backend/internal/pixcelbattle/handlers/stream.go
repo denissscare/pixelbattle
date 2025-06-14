@@ -27,6 +27,7 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 			return
 		}
 		log.Infof("WS: new connection from %s", r.RemoteAddr)
+
 		defer func() {
 			conn.Close()
 			log.Infof("WS: client %s disconnected", r.RemoteAddr)

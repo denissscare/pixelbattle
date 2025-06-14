@@ -7,6 +7,7 @@ import (
 	_ "net/http/pprof"
 	"pixelbattle/internal/config"
 	"pixelbattle/internal/pixcelbattle/broker"
+	"pixelbattle/internal/pixcelbattle/metrics"
 	"pixelbattle/internal/pixcelbattle/service"
 	"pixelbattle/internal/pixcelbattle/storage/redis"
 	"pixelbattle/internal/server"
@@ -17,6 +18,7 @@ func main() {
 	ctx := context.Background()
 	config := config.LoadConfig()
 	log := logger.New(config.Environment)
+	metrics := metrics.NewPrometheusMetrics()
 
 	rds, err := redis.NewClient(ctx, *config)
 	if err != nil {
@@ -30,9 +32,9 @@ func main() {
 	}
 	defer br.Close()
 
-	pixelbattle := service.NewBattleService(*rds, *br, log)
+	pixelbattle := service.NewBattleService(*rds, *br, log, metrics)
 
-	router := server.InitRouter(pixelbattle, log)
+	router := server.InitRouter(pixelbattle, log, metrics)
 
 	go func() {
 		fmt.Println("pprof listening on http://localhost:6060/debug/pprof/")
@@ -42,7 +44,6 @@ func main() {
 	}()
 
 	srv := server.New(config, router, log)
-
 	if err := srv.Run(); err != nil {
 		log.Fatalf("Server shutdown error: %v", err)
 	}
