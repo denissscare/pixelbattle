@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	authHandlers "pixelbattle/internal/auth/handlers"
+	auth "pixelbattle/internal/auth/service"
 	"pixelbattle/internal/config"
 	"pixelbattle/internal/middleware"
 	"pixelbattle/internal/pixcelbattle/handlers"
 	"pixelbattle/internal/pixcelbattle/metrics"
 	"pixelbattle/internal/pixcelbattle/service"
+	jwtutil "pixelbattle/pkg/jwt"
 	"pixelbattle/pkg/logger"
 	"syscall"
 	"time"
@@ -92,7 +95,7 @@ func (s *Server) Run() error {
 	return nil
 }
 
-func InitRouter(svc *service.BattleService, log *logger.Logger, metrics metrics.Metrics) *chi.Mux {
+func InitRouter(svc *service.BattleService, authSvc *auth.Service, log *logger.Logger, metrics metrics.Metrics, jwtManager *jwtutil.JWTManager) *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Use(cors.Handler(cors.Options{
@@ -109,8 +112,10 @@ func InitRouter(svc *service.BattleService, log *logger.Logger, metrics metrics.
 	router.With(middleware.NoLogger).Get("/ws", handlers.WSHandler(svc, log))
 	router.Handle("/*", http.FileServer(http.Dir("./static")))
 
-	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
-	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
+	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
+	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
+	router.With(middleware.RequestLogger(log)).Post("/register", authHandlers.RegisterHandler(authSvc, log))
+	router.With(middleware.RequestLogger(log)).Post("/login", authHandlers.LoginHandler(authSvc, log))
 
 	router.Handle("/metrics", promhttp.Handler())
 
