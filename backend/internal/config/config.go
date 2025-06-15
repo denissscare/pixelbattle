@@ -45,6 +45,15 @@ type Config struct {
 		DBName   string `mapstructure:"dbname"`
 		SSLMode  string `mapstructure:"sslmode"`
 	} `mapstructure:"postgres"`
+
+	Minio struct {
+		Endpoint   string `mapstructure:"endpoint"`
+		AccessKey  string `mapstructure:"access_key"`
+		SecretKey  string `mapstructure:"secret_key"`
+		Bucket     string `mapstructure:"bucket"`
+		UseSSL     bool   `mapstructure:"use_ssl"`
+		PublicHost string `mapstructure:"public"`
+	} `mapstructure:"minio"`
 }
 
 func LoadConfig() *Config {
@@ -77,6 +86,13 @@ func LoadConfig() *Config {
 	viper.BindEnv("postgres.password", "POSTGRES_PASSWORD")
 	viper.BindEnv("postgres.dbname", "POSTGRES_DB")
 	viper.BindEnv("postgres.sslmode", "POSTGRES_SSLMODE")
+
+	viper.BindEnv("minio.endpoint", "MINIO_ENDPOINT")
+	viper.BindEnv("minio.public", "MINIO_PUBLIC_HOST")
+	viper.BindEnv("minio.access_key", "MINIO_ACCESS_KEY")
+	viper.BindEnv("minio.secret_key", "MINIO_SECRET_KEY")
+	viper.BindEnv("minio.bucket", "MINIO_BUCKET")
+	viper.BindEnv("minio.use_ssl", "MINIO_USE_SSL")
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic("no config.yaml found")
