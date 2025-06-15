@@ -1,9 +1,13 @@
 package auth
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"mime/multipart"
 	"pixelbattle/internal/auth/domain"
 	storage "pixelbattle/internal/auth/storage/postgres"
+	"pixelbattle/internal/s3"
 	"pixelbattle/pkg/hash"
 	jwtutil "pixelbattle/pkg/jwt"
 	"pixelbattle/pkg/logger"
@@ -13,10 +17,11 @@ type Service struct {
 	repo       *storage.Repository
 	jwtManager *jwtutil.JWTManager
 	log        *logger.Logger
+	s3Client   *s3.Client
 }
 
-func NewService(repo *storage.Repository, jwtManager *jwtutil.JWTManager, log *logger.Logger) *Service {
-	return &Service{repo: repo, jwtManager: jwtManager, log: log}
+func NewService(repo *storage.Repository, jwtManager *jwtutil.JWTManager, log *logger.Logger, s3Client *s3.Client) *Service {
+	return &Service{repo: repo, jwtManager: jwtManager, log: log, s3Client: s3Client}
 }
 
 func (s *Service) Register(username, email, password string) error {
@@ -49,4 +54,36 @@ func (s *Service) Login(emailOrUsername, password string) (*domain.User, string,
 		return nil, "", err
 	}
 	return user, token, nil
+}
+
+func (s *Service) RegisterWithID(username, email, password string) (int, error) {
+	if _, err := s.repo.GetUserByEmail(email); err == nil {
+		return 0, errors.New("user with this email already exists")
+	}
+	if _, err := s.repo.GetUserByUsername(username); err == nil {
+		return 0, errors.New("user with this username already exists")
+	}
+	hash, err := hash.HashPassword(password)
+	if err != nil {
+		return 0, err
+	}
+	return s.repo.CreateUserReturningID(username, email, hash)
+}
+
+func (s *Service) UpdateAvatarURL(userID int, url string) error {
+	return s.repo.UpdateAvatarURL(userID, url)
+}
+
+func (s *Service) UploadAvatar(ctx context.Context, userID int, fileHeader *multipart.FileHeader) error {
+	objectName := fmt.Sprintf("avatars/%d_%s", userID, fileHeader.Filename)
+
+	_, err := s.s3Client.UploadFile(ctx, fileHeader, objectName)
+	if err != nil {
+		return fmt.Errorf("s3 upload error: %w", err)
+	}
+
+	if err := s.repo.UpdateAvatarURL(userID, objectName); err != nil {
+		return fmt.Errorf("db update error: %w", err)
+	}
+	return nil
 }
