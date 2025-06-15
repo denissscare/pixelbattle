@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	auth "pixelbattle/internal/auth/service"
+	storage "pixelbattle/internal/auth/storage/postgres"
 	"pixelbattle/internal/config"
 	"pixelbattle/internal/pixcelbattle/broker"
 	"pixelbattle/internal/pixcelbattle/metrics"
@@ -12,7 +15,9 @@ import (
 	"pixelbattle/internal/pixcelbattle/storage/redis"
 	"pixelbattle/internal/server"
 	"pixelbattle/internal/storage/postgres"
+	jwtutil "pixelbattle/pkg/jwt"
 	"pixelbattle/pkg/logger"
+	"time"
 )
 
 func main() {
@@ -21,11 +26,19 @@ func main() {
 	log := logger.New(config.Environment)
 	metrics := metrics.NewPrometheusMetrics()
 
-	postgres, err := postgres.NewStorage(*config)
+	postgresDB, err := postgres.NewStorage(*config)
 	if err != nil {
 		log.Fatalf("Postgres init failed: %v", err)
 	}
-	_ = postgres
+	defer postgresDB.Close()
+
+	userStorage := storage.NewRepository(postgresDB)
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = "supersecretkey"
+	}
+	jwtManager := jwtutil.NewManager(jwtSecret, 24*time.Hour)
 
 	rds, err := redis.NewClient(ctx, *config)
 	if err != nil {
@@ -40,8 +53,8 @@ func main() {
 	defer br.Close()
 
 	pixelbattle := service.NewBattleService(*rds, *br, log, metrics)
-
-	router := server.InitRouter(pixelbattle, log, metrics)
+	auth := auth.NewService(userStorage, jwtManager, log)
+	router := server.InitRouter(pixelbattle, auth, log, metrics, jwtManager)
 
 	go func() {
 		fmt.Println("pprof listening on http://localhost:6060/debug/pprof/")
