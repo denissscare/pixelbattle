@@ -37,3 +37,17 @@ func (r *Repository) GetUserByUsername(username string) (*domain.User, error) {
 	}
 	return &u, nil
 }
+
+func (r *Repository) UpdateAvatarURL(userID int, avatarURL string) error {
+	_, err := r.db.Exec(`UPDATE users SET avatar_url = $1 WHERE id = $2`, avatarURL, userID)
+	return err
+}
+
+func (r *Repository) CreateUserReturningID(username, email, password string) (int, error) {
+	var id int
+	err := r.db.QueryRow(
+		`INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id`,
+		username, email, password,
+	).Scan(&id)
+	return id, err
+}
