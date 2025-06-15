@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
@@ -94,7 +95,19 @@ func (s *Server) Run() error {
 func InitRouter(svc *service.BattleService, log *logger.Logger, metrics metrics.Metrics) *chi.Mux {
 	router := chi.NewRouter()
 
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           int((300 * time.Second).Seconds()),
+	}))
+
+	router.Handle("/*", http.FileServer(http.Dir("./static")))
+
 	router.With(middleware.NoLogger).Get("/ws", handlers.WSHandler(svc, log))
+	router.Handle("/*", http.FileServer(http.Dir("./static")))
 
 	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
 	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
