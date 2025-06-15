@@ -36,6 +36,15 @@ type Config struct {
 	NATS struct {
 		URL string `mapstructure:"url"`
 	} `mapstructure:"nats"`
+
+	Postgres struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		User     string `mapstructure:"user"`
+		Password string `mapstructure:"password"`
+		DBName   string `mapstructure:"dbname"`
+		SSLMode  string `mapstructure:"sslmode"`
+	} `mapstructure:"postgres"`
 }
 
 func LoadConfig() *Config {
@@ -61,6 +70,13 @@ func LoadConfig() *Config {
 	viper.BindEnv("redis.password", "REDIS_PASSWORD")
 	viper.BindEnv("redis.user", "REDIS_USER")
 	viper.BindEnv("nats.url", "NATS_URL")
+
+	viper.BindEnv("postgres.host", "POSTGRES_HOST")
+	viper.BindEnv("postgres.port", "POSTGRES_PORT")
+	viper.BindEnv("postgres.user", "POSTGRES_USER")
+	viper.BindEnv("postgres.password", "POSTGRES_PASSWORD")
+	viper.BindEnv("postgres.dbname", "POSTGRES_DB")
+	viper.BindEnv("postgres.sslmode", "POSTGRES_SSLMODE")
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic("no config.yaml found")

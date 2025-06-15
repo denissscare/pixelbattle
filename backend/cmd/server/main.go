@@ -11,6 +11,7 @@ import (
 	"pixelbattle/internal/pixcelbattle/service"
 	"pixelbattle/internal/pixcelbattle/storage/redis"
 	"pixelbattle/internal/server"
+	"pixelbattle/internal/storage/postgres"
 	"pixelbattle/pkg/logger"
 )
 
@@ -19,6 +20,12 @@ func main() {
 	config := config.LoadConfig()
 	log := logger.New(config.Environment)
 	metrics := metrics.NewPrometheusMetrics()
+
+	postgres, err := postgres.NewStorage(*config)
+	if err != nil {
+		log.Fatalf("Postgres init failed: %v", err)
+	}
+	_ = postgres
 
 	rds, err := redis.NewClient(ctx, *config)
 	if err != nil {
