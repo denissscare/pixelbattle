@@ -13,6 +13,7 @@ import (
 	"pixelbattle/internal/pixcelbattle/metrics"
 	"pixelbattle/internal/pixcelbattle/service"
 	"pixelbattle/internal/pixcelbattle/storage/redis"
+	"pixelbattle/internal/s3"
 	"pixelbattle/internal/server"
 	"pixelbattle/internal/storage/postgres"
 	jwtutil "pixelbattle/pkg/jwt"
@@ -25,6 +26,11 @@ func main() {
 	config := config.LoadConfig()
 	log := logger.New(config.Environment)
 	metrics := metrics.NewPrometheusMetrics()
+
+	minioClient, err := s3.New(*config)
+	if err != nil {
+		log.Fatalf("Minio init failed: %v", err)
+	}
 
 	postgresDB, err := postgres.NewStorage(*config)
 	if err != nil {
@@ -53,8 +59,8 @@ func main() {
 	defer br.Close()
 
 	pixelbattle := service.NewBattleService(*rds, *br, log, metrics)
-	auth := auth.NewService(userStorage, jwtManager, log)
-	router := server.InitRouter(pixelbattle, auth, log, metrics, jwtManager)
+	auth := auth.NewService(userStorage, jwtManager, log, minioClient)
+	router := server.InitRouter(pixelbattle, auth, log, metrics, jwtManager, minioClient, *config)
 
 	go func() {
 		fmt.Println("pprof listening on http://localhost:6060/debug/pprof/")
