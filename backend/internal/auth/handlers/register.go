@@ -34,7 +34,7 @@ func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger)
 		file, fileHeader, err := r.FormFile("avatar")
 		if err == nil {
 			defer file.Close()
-			objectName := fmt.Sprintf("avatars/%d_%s", userID, fileHeader.Filename)
+			objectName := fmt.Sprintf("%d_%s", userID, fileHeader.Filename)
 			_, err = s3Client.UploadFile(r.Context(), fileHeader, objectName)
 			if err != nil {
 				log.Errorf("avatar upload: s3 error: %v", err)
