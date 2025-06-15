@@ -1,37 +1,54 @@
 package handlers
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	auth "pixelbattle/internal/auth/service"
+	"pixelbattle/internal/s3"
 	"pixelbattle/pkg/logger"
 )
 
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func RegisterHandler(svc *auth.Service, log *logger.Logger) http.HandlerFunc {
+func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req RegisterRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			log.Errorf("HTTP POST /register bad payload: %v", err)
-			http.Error(w, "invalid request", http.StatusBadRequest)
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			log.Errorf("HTTP POST /register: cannot parse multipart form: %v", err)
+			http.Error(w, "cannot parse multipart form", http.StatusBadRequest)
 			return
 		}
-		if req.Username == "" || req.Email == "" || req.Password == "" {
-			log.Infof("HTTP POST /register missing fields: %+v", req)
+		username := r.FormValue("username")
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+		if username == "" || email == "" || password == "" {
+			log.Infof("HTTP POST /register: missing fields: username=%s, email=%s", username, email)
 			http.Error(w, "missing fields", http.StatusBadRequest)
 			return
 		}
-		if err := svc.Register(req.Username, req.Email, req.Password); err != nil {
-			log.Infof("HTTP POST /register failed: %v", err)
+
+		userID, err := svc.RegisterWithID(username, email, password)
+		if err != nil {
+			log.Infof("HTTP POST /register: failed: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		file, fileHeader, err := r.FormFile("avatar")
+		if err == nil {
+			defer file.Close()
+			objectName := fmt.Sprintf("avatars/%d_%s", userID, fileHeader.Filename)
+			_, err = s3Client.UploadFile(r.Context(), fileHeader, objectName)
+			if err != nil {
+				log.Errorf("avatar upload: s3 error: %v", err)
+				http.Error(w, "upload error", http.StatusInternalServerError)
+				return
+			}
+			if err := svc.UpdateAvatarURL(userID, objectName); err != nil {
+				log.Errorf("avatar upload: update db error: %v", err)
+				http.Error(w, "db error", http.StatusInternalServerError)
+				return
+			}
+			log.Infof("avatar uploaded: userID=%d, file=%s", userID, fileHeader.Filename)
+		}
+		log.Infof("HTTP POST /register → registered user %s (%s), id=%d", username, email, userID)
 		w.WriteHeader(http.StatusCreated)
-		log.Infof("HTTP POST /register → registered user %s (%s)", req.Username, req.Email)
 	}
 }

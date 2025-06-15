@@ -12,7 +12,7 @@ type LoginRequest struct {
 	Password        string `json:"password"`
 }
 
-func LoginHandler(svc *auth.Service, log *logger.Logger) http.HandlerFunc {
+func LoginHandler(svc *auth.Service, log *logger.Logger, minioHost string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req LoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -31,13 +31,19 @@ func LoginHandler(svc *auth.Service, log *logger.Logger) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
+
+		avatarURL := ""
+		if user.AvatarURL != nil && *user.AvatarURL != "" {
+			avatarURL = "http://" + minioHost + "/avatars/" + *user.AvatarURL
+		}
+
 		resp := map[string]interface{}{
 			"token": token,
 			"user": map[string]interface{}{
 				"id":       user.ID,
 				"username": user.Username,
 				"email":    user.Email,
-				"avatar":   user.AvatarURL,
+				"avatar":   avatarURL,
 			},
 		}
 		log.Infof("HTTP POST /login success for user %s (id=%d)", user.Username, user.ID)
