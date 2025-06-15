@@ -13,6 +13,7 @@ import (
 	"pixelbattle/internal/pixcelbattle/handlers"
 	"pixelbattle/internal/pixcelbattle/metrics"
 	"pixelbattle/internal/pixcelbattle/service"
+	"pixelbattle/internal/s3"
 	jwtutil "pixelbattle/pkg/jwt"
 	"pixelbattle/pkg/logger"
 	"syscall"
@@ -95,7 +96,13 @@ func (s *Server) Run() error {
 	return nil
 }
 
-func InitRouter(svc *service.BattleService, authSvc *auth.Service, log *logger.Logger, metrics metrics.Metrics, jwtManager *jwtutil.JWTManager) *chi.Mux {
+func InitRouter(svc *service.BattleService,
+	authSvc *auth.Service,
+	log *logger.Logger,
+	metrics metrics.Metrics,
+	jwtManager *jwtutil.JWTManager,
+	s3Client *s3.Client,
+	cfg config.Config) *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Use(cors.Handler(cors.Options{
@@ -114,8 +121,9 @@ func InitRouter(svc *service.BattleService, authSvc *auth.Service, log *logger.L
 
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
-	router.With(middleware.RequestLogger(log)).Post("/register", authHandlers.RegisterHandler(authSvc, log))
-	router.With(middleware.RequestLogger(log)).Post("/login", authHandlers.LoginHandler(authSvc, log))
+	router.With(middleware.RequestLogger(log)).Post("/register", authHandlers.RegisterHandler(s3Client, authSvc, log))
+	router.With(middleware.RequestLogger(log)).Post("/login", authHandlers.LoginHandler(authSvc, log, cfg.Minio.PublicHost))
+	router.With(middleware.JWTAuth(jwtManager), middleware.RequestLogger(log)).Post("/avatar", authHandlers.UploadAvatarHandler(authSvc, log))
 
 	router.Handle("/metrics", promhttp.Handler())
 
