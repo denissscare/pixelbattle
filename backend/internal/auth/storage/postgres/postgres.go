@@ -5,6 +5,14 @@ import (
 	"pixelbattle/internal/auth/domain"
 )
 
+type UserRepo interface {
+	GetUserByEmail(email string) (*domain.User, error)
+	GetUserByUsername(username string) (*domain.User, error)
+	CreateUser(username, email, hash string) error
+	CreateUserReturningID(username, email, hash string) (int, error)
+	UpdateAvatarURL(id int, url string) error
+}
+
 type Repository struct {
 	db *sql.DB
 }

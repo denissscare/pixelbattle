@@ -14,13 +14,13 @@ import (
 )
 
 type Service struct {
-	repo       *storage.Repository
-	jwtManager *jwtutil.JWTManager
+	repo       storage.UserRepo
+	jwtManager jwtutil.JWT
 	log        *logger.Logger
-	s3Client   *s3.Client
+	s3Client   s3.Uploader
 }
 
-func NewService(repo *storage.Repository, jwtManager *jwtutil.JWTManager, log *logger.Logger, s3Client *s3.Client) *Service {
+func NewService(repo storage.UserRepo, jwtManager jwtutil.JWT, log *logger.Logger, s3Client s3.Uploader) *Service {
 	return &Service{repo: repo, jwtManager: jwtManager, log: log, s3Client: s3Client}
 }
 

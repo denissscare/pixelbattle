@@ -58,7 +58,7 @@ func main() {
 	}
 	defer br.Close()
 
-	pixelbattle := service.NewBattleService(*rds, *br, log, metrics)
+	pixelbattle := service.NewBattleService(rds, br, log, metrics)
 	auth := auth.NewService(userStorage, jwtManager, log, minioClient)
 	router := server.InitRouter(pixelbattle, auth, log, metrics, jwtManager, minioClient, *config)
 

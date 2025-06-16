@@ -10,6 +10,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type RedisRepo interface {
+	GetCanvas(ctx context.Context) (map[string]domain.Pixel, error)
+	SetPixcel(ctx context.Context, p domain.Pixel) error
+}
+
 type Redis struct {
 	db *redis.Client
 }

@@ -6,6 +6,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type JWT interface {
+	GenerateToken(userID int, username string) (string, error)
+	ParseToken(tokenString string) (*Claims, error)
+}
 type Claims struct {
 	UserID   int    `json:"user_id"`
 	Username string `json:"username"`

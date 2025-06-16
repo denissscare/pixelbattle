@@ -10,6 +10,11 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
+type Uploader interface {
+	UploadFile(ctx context.Context, fileHeader *multipart.FileHeader, objectName string) (string, error)
+	GetPresignedURL(ctx context.Context, objectName string, expires time.Duration) (string, error)
+}
+
 type Client struct {
 	cli    *minio.Client
 	bucket string

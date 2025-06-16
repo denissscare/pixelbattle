@@ -13,13 +13,13 @@ import (
 )
 
 type BattleService struct {
-	repo    redis.Redis
-	broker  broker.NatsBroker
+	repo    redis.RedisRepo
+	broker  broker.Broker
 	log     *logger.Logger
 	metrics metrics.Metrics
 }
 
-func NewBattleService(repo redis.Redis, broker broker.NatsBroker, log *logger.Logger, metrics metrics.Metrics) *BattleService {
+func NewBattleService(repo redis.RedisRepo, broker broker.Broker, log *logger.Logger, metrics metrics.Metrics) *BattleService {
 	return &BattleService{repo: repo, broker: broker, log: log, metrics: metrics}
 }
 func (s *BattleService) InitCanvas(ctx context.Context) (map[string]domain.Pixel, error) {
