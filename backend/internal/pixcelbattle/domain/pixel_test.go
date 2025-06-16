@@ -1,7 +1,7 @@
 package domain
 
 import (
-  "github.com/stretchr/testify/require"
+  	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
@@ -17,7 +17,7 @@ func TestValidate(t *testing.T) {
   }
   require.Error(t, p.Validate())
 
-  p := Pixel {
+  p = Pixel {
       X:         10,
       Y:         20,
       Color:     "#FF0000",
@@ -26,7 +26,7 @@ func TestValidate(t *testing.T) {
   }
   require.Error(t, p.Validate())
   
-  p := Pixel {
+  p = Pixel {
       X:         10,
       Y:         20,
       Color:     "#FF0000",
