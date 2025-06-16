@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	
 	"pixelbattle/internal/config"
 	"pixelbattle/pkg/logger"
 	"pixelbattle/internal/pixcelbattle/metrics"
+	"pixelbattle/internal/pixcelbattle/broker"
+	
 	"github.com/stretchr/testify/require"
 	"testing"
 )
