@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidate(t *testing.T) {
