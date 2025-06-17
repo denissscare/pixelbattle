@@ -28,6 +28,10 @@ func (s *BattleService) InitCanvas(ctx context.Context) (map[string]domain.Pixel
 	return s.repo.GetCanvas(ctx)
 }
 
+func (s *BattleService) GetAllPixelHistory(ctx context.Context) ([]domain.Pixel, error) {
+	return s.pgRepo.GetAllPixelHistory(ctx)
+}
+
 func (s *BattleService) UpdatePixel(ctx context.Context, p domain.Pixel) error {
 	if err := p.Validate(); err != nil {
 		return err

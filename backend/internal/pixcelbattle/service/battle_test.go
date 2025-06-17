@@ -37,6 +37,9 @@ type mockPGStorage struct {
 func (pg *mockPGStorage) SavePixelHistory(ctx context.Context, p domain.Pixel) error {
 	return nil
 }
+func (pg *mockPGStorage) GetAllPixelHistory(ctx context.Context) ([]domain.Pixel, error) {
+	return nil, nil
+}
 
 type mockBroker struct {
 	publishedTopic string

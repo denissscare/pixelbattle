@@ -124,6 +124,7 @@ func InitRouter(svc *service.BattleService,
 	router.With(middleware.RequestLogger(log)).Post("/register", authHandlers.RegisterHandler(s3Client, authSvc, log))
 	router.With(middleware.RequestLogger(log)).Post("/login", authHandlers.LoginHandler(authSvc, log, cfg.Minio.PublicHost))
 	router.With(middleware.JWTAuth(jwtManager), middleware.RequestLogger(log)).Post("/avatar", authHandlers.UploadAvatarHandler(authSvc, log))
+	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/pixels/history", handlers.PixelHistoryHandler(svc, log))
 
 	router.Handle("/metrics", promhttp.Handler())
 
