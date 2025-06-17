@@ -16,7 +16,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc {
+func WSHandler(svc *service.BattleService, log *logger.Logger, timeout int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -60,10 +60,10 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 				log.Warnf("WS: could not fetch last pixel for %s: %v", author, err)
 			}
 		}
-
 		conn.WriteJSON(map[string]interface{}{
 			"type": "init",
 			"payload": map[string]interface{}{
+				"timeout":    timeout,
 				"canvas":     canvas,
 				"last_pixel": lastPixel,
 			},

@@ -16,10 +16,11 @@ type Config struct {
 	Environment string `mapstructure:"environment"`
 
 	Server struct {
-		Host        string        `mapstructure:"host"`
-		Port        int           `mapstructure:"port"`
-		Timeout     time.Duration `mapstructure:"timeout"`
-		IdleTimeout time.Duration `mapstructure:"idle_timeout"`
+		Host          string        `mapstructure:"host"`
+		Port          int           `mapstructure:"port"`
+		Timeout       time.Duration `mapstructure:"timeout"`
+		IdleTimeout   time.Duration `mapstructure:"idle_timeout"`
+		CanvasTimeout int           `mapstructure:"canvas_timeout"`
 	} `mapstructure:"server"`
 
 	Redis struct {

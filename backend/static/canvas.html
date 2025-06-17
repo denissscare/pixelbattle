@@ -195,7 +195,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         const address = window.location.href.replace('http://', '').replace('https://', '').split('/')[0];
-
+        let pixelTimeout = null;
         let lastPixelTime = null;
         let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
         var pixelSize = 15;
@@ -288,11 +288,9 @@
                 let now = new Date().getTime();
                 ctx.fillStyle = currentColor;
                 if (lastPixelTime !== null){
-                    let timeout = lastPixelTime + 1000*10;
+                    let timeout = lastPixelTime + 1000*pixelTimeout;
                     if (now < timeout){
-                        // ADD ERROR
                         let seconds = Math.floor((timeout - now) / 1000);
-                        
                         showToast("Слишком быстро! Подождите ещё " +  (seconds + 1) + ((seconds % 10 > 3) ? " секунд." : (seconds % 10 > 0) ? " секунды." : " секунду."))
                         return
                     }
@@ -364,6 +362,7 @@
             if (data.type == 'init'){
                 var payload = data.payload;
                 var canvas = payload.canvas;
+                pixelTimeout = payload.timeout;
                 lastPixelTime = Date.parse(payload.last_pixel);
                 var keys = Object.keys(canvas);
                 for (var key of keys){
