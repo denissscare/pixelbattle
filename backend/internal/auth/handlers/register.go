@@ -6,15 +6,32 @@ import (
 	auth "pixelbattle/internal/auth/service"
 	"pixelbattle/internal/s3"
 	"pixelbattle/pkg/logger"
+
+	"html/template"
 )
+
+func RegisterRender(svc *auth.Service, log *logger.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data := ""
+
+		if tmpl, err := template.ParseFiles("static/signup.html"); err != nil {
+			log.Errorf("HTTP GET /register: cannot open signup.html: %v", err)
+			http.Error(w, "cannot open signup.html", http.StatusBadRequest)
+		} else {
+			tmpl.Execute(w, data)
+		}
+	}
+}
 
 func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		if err := r.ParseMultipartForm(10 << 20); err != nil {
 			log.Errorf("HTTP POST /register: cannot parse multipart form: %v", err)
 			http.Error(w, "cannot parse multipart form", http.StatusBadRequest)
 			return
 		}
+
 		username := r.FormValue("username")
 		email := r.FormValue("email")
 		password := r.FormValue("password")
@@ -33,9 +50,11 @@ func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger)
 
 		file, fileHeader, err := r.FormFile("avatar")
 		if err == nil {
+
 			defer file.Close()
 			objectName := fmt.Sprintf("%d_%s", userID, fileHeader.Filename)
 			_, err = s3Client.UploadFile(r.Context(), fileHeader, objectName)
+
 			if err != nil {
 				log.Errorf("avatar upload: s3 error: %v", err)
 				http.Error(w, "upload error", http.StatusInternalServerError)
@@ -49,6 +68,6 @@ func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger)
 			log.Infof("avatar uploaded: userID=%d, file=%s", userID, fileHeader.Filename)
 		}
 		log.Infof("HTTP POST /register → registered user %s (%s), id=%d", username, email, userID)
-		w.WriteHeader(http.StatusCreated)
+		http.Redirect(w, r, "/index", http.StatusSeeOther)
 	}
 }
