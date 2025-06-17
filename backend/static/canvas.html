@@ -40,7 +40,6 @@
         }
         
         .color-picker {
-            z-index: 1023;
             width: 50px;
             height: 30px;
             border: 1px solid #999;
@@ -59,7 +58,7 @@
         }
 
         .top-panel{
-            z-index: 1022;
+            z-index: 1000;
             background-color: #eee;
             width: 90%;
             height: 150px;
@@ -68,7 +67,7 @@
             border-radius: 5px;
         }
         .right-panel{
-            z-index: 1022;
+            z-index: 1000;
             background-color: #eee;
             height: 150px;
             width: 10%;
@@ -99,6 +98,80 @@
             position: absolute;
         }
 
+
+        .toast {
+            z-index: 1002;
+            display: none;
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            max-width: 300px;
+            background: #fff;
+            padding: 0.5rem;
+            box-shadow: -1px 1px 10px rgba(0,0,0,0.3);
+            z-index: 1023;
+            animation: slideInRight 0.3s
+                        ease-in-out forwards,
+                        fadeOut 0.5s ease-in-out
+                        forwards 3s;
+            transform: translateX(110%);
+            }
+            .toast.closing{
+            animation: slideOutRight 0.5s
+                        ease-in-out forwards;
+            }
+            .toast-progress{
+            position: absolute;
+            display: block;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: #b7b7b7;
+            animation: toastProgress 3s
+                        ease-in-out forwards;
+            }
+            @keyFrames slideInRight{
+            0% {
+                transform: translateX(110%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(0%);
+            }
+            }
+
+            @keyFrames slideOutRight{
+            0% {
+                transform: translateX(0%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(110%);
+            }
+            }
+
+            @keyFrames fadeOut{
+            0% {
+                opacity: 1;
+            }
+            100%{
+                opacity: 0;
+            }
+            }
+
+            @keyFrames toastProgress{
+            0% {
+                width: 100%;
+            }
+            100%{
+                width: 0%;
+            }
+            }
     </style>
 </head>
 <body>
@@ -116,12 +189,13 @@
         </div>
     </div>
     <canvas id="pixelCanvas"></canvas>
+    <div class="toast"></div>
 </body>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         const address = window.location.href.replace('http://', '').replace('https://', '').split('/')[0];
-
+        let pixelTimeout = null;
         let lastPixelTime = null;
         let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
         var pixelSize = 15;
@@ -214,10 +288,10 @@
                 let now = new Date().getTime();
                 ctx.fillStyle = currentColor;
                 if (lastPixelTime !== null){
-                    let timeout = lastPixelTime + 1000*5;
+                    let timeout = lastPixelTime + 1000*pixelTimeout;
                     if (now < timeout){
-                        // ADD ERROR
-                        console.log('too fast')
+                        let seconds = Math.floor((timeout - now) / 1000);
+                        showToast("Слишком быстро! Подождите ещё " +  (seconds + 1) + ((seconds % 10 > 3) ? " секунд." : (seconds % 10 > 0) ? " секунды." : " секунду."))
                         return
                     }
                 }
@@ -288,6 +362,7 @@
             if (data.type == 'init'){
                 var payload = data.payload;
                 var canvas = payload.canvas;
+                pixelTimeout = payload.timeout;
                 lastPixelTime = Date.parse(payload.last_pixel);
                 var keys = Object.keys(canvas);
                 for (var key of keys){
@@ -307,6 +382,22 @@
             localStorage.removeItem("username");
             localStorage.removeItem("avatar");
             window.location.href="/";
+        }
+
+        function showToast(errorText, duration){
+            if ($('.toast').length != 0){$('.toast').remove()}
+            box = document.createElement('div');
+            toast = document.createElement('div');
+            toast.className = "toast"
+            toast.innerText = errorText;
+            box.className = "toast-progress";
+
+            duration = duration || 5000;
+            toast.style.animationDuration = `${duration / 1000}`;
+            box.style.animationDuration = `${duration / 1000}`;
+            toast.appendChild(box);
+            toast.style.display = 'block';
+            $('body')[0].appendChild(toast);
         }
     </script>
 

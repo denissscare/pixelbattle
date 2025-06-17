@@ -118,7 +118,7 @@ func InitRouter(svc *service.BattleService,
 		http.Redirect(w, r, "/index", http.StatusSeeOther)
 	})
 
-	router.With(middleware.NoLogger).Get("/ws", handlers.WSHandler(svc, log))
+	router.With(middleware.NoLogger).Get("/ws", handlers.WSHandler(svc, log, cfg.Server.CanvasTimeout))
 
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
