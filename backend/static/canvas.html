@@ -121,8 +121,8 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         const address = window.location.href.replace('http://', '').replace('https://', '').split('/')[0];
-        console.log(address);
 
+        let lastPixelTime = null;
         let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
         var pixelSize = 15;
         var canvasSize = 200;
@@ -211,7 +211,17 @@
             const pixelY = y * pixelSize;
             
             if (color == null){
+                let now = new Date().getTime();
                 ctx.fillStyle = currentColor;
+                if (lastPixelTime !== null){
+                    let timeout = lastPixelTime + 1000*5;
+                    if (now < timeout){
+                        // ADD ERROR
+                        console.log('too fast')
+                        return
+                    }
+                }
+                lastPixelTime = now;
             } else {
                 ctx.fillStyle = color;
             }
@@ -276,15 +286,15 @@
         socket.onmessage = function(event) {
             var data = JSON.parse(event.data);
             if (data.type == 'init'){
-            var payload = data.payload;
-            var canvas = payload.canvas;
-            var lastPixel = payload.last_pixel;
-            var keys = Object.keys(canvas);
-            for (var key of keys){
-                fillPixel(canvas[key].x, canvas[key].y, canvas[key].color);
-            }
+                var payload = data.payload;
+                var canvas = payload.canvas;
+                lastPixelTime = Date.parse(payload.last_pixel);
+                var keys = Object.keys(canvas);
+                for (var key of keys){
+                    fillPixel(canvas[key].x, canvas[key].y, canvas[key].color);
+                }
             } else if (data.type == 'update'){
-                    fillPixel(data.payload.x, data.payload.y, data.payload.color);
+                fillPixel(data.payload.x, data.payload.y, data.payload.color);
             } 
         };
 
