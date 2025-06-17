@@ -7,6 +7,7 @@ import (
 	"pixelbattle/internal/pixcelbattle/broker"
 	"pixelbattle/internal/pixcelbattle/domain"
 	"pixelbattle/internal/pixcelbattle/metrics"
+	"pixelbattle/internal/pixcelbattle/storage/postgres"
 	pixelredis "pixelbattle/internal/pixcelbattle/storage/redis"
 	"testing"
 	"time"
@@ -28,6 +29,13 @@ func (m *mockRedis) GetCanvas(ctx context.Context) (map[string]domain.Pixel, err
 func (m *mockRedis) SetPixcel(ctx context.Context, p domain.Pixel) error {
 	m.setPixelLastVal = p
 	return m.setPixelErr
+}
+
+type mockPGStorage struct {
+}
+
+func (pg *mockPGStorage) SavePixelHistory(ctx context.Context, p domain.Pixel) error {
+	return nil
 }
 
 type mockBroker struct {
@@ -65,8 +73,8 @@ func (m *mockMetrics) ObserveHTTPDuration(method, path string, duration float64)
 func (m *mockMetrics) IncActiveConnections()                                     { m.incConns++ }
 func (m *mockMetrics) DecActiveConnections()                                     { m.decConns++ }
 
-func newTestBattleService(redis pixelredis.RedisRepo, broker broker.Broker, metrics metrics.Metrics) *BattleService {
-	return NewBattleService(redis, broker, nil, metrics)
+func newTestBattleService(redis pixelredis.RedisRepo, pgstorage postgres.PGRepo, broker broker.Broker, metrics metrics.Metrics) *BattleService {
+	return NewBattleService(redis, pgstorage, broker, nil, metrics)
 }
 
 func TestInitCanvasM(t *testing.T) {
@@ -81,7 +89,7 @@ func TestInitCanvasM(t *testing.T) {
 		},
 	}
 	mredis := &mockRedis{canvas: testPixels}
-	bs := newTestBattleService(mredis, &mockBroker{}, &mockMetrics{})
+	bs := newTestBattleService(mredis, &mockPGStorage{}, &mockBroker{}, &mockMetrics{})
 	canvas, err := bs.InitCanvas(ctx)
 	require.NoError(t, err)
 	require.Equal(t, testPixels, canvas)
@@ -105,7 +113,7 @@ func TestUpdatePixelSuccess(t *testing.T) {
 	mbroker := &mockBroker{}
 	mmetrics := &mockMetrics{}
 
-	bs := newTestBattleService(mredis, mbroker, mmetrics)
+	bs := newTestBattleService(mredis, &mockPGStorage{}, mbroker, mmetrics)
 	err := bs.UpdatePixel(ctx, p)
 	require.NoError(t, err)
 
@@ -126,7 +134,7 @@ func TestUpdatePixelSuccess(t *testing.T) {
 func TestUpdatePixelValidationError(t *testing.T) {
 	ctx := context.Background()
 
-	bs := newTestBattleService(&mockRedis{}, &mockBroker{}, &mockMetrics{})
+	bs := newTestBattleService(&mockRedis{}, &mockPGStorage{}, &mockBroker{}, &mockMetrics{})
 
 	badPixel := domain.Pixel{X: -1, Y: -1, Color: "zzzzz"}
 	err := bs.UpdatePixel(ctx, badPixel)
@@ -135,7 +143,7 @@ func TestUpdatePixelValidationError(t *testing.T) {
 func TestUpdatePixelRedisError(t *testing.T) {
 	ctx := context.Background()
 	mredis := &mockRedis{setPixelErr: errors.New("redis error")}
-	bs := newTestBattleService(mredis, &mockBroker{}, &mockMetrics{})
+	bs := newTestBattleService(mredis, &mockPGStorage{}, &mockBroker{}, &mockMetrics{})
 
 	p := domain.Pixel{
 		X:         1,
@@ -150,7 +158,7 @@ func TestUpdatePixelBrokerError(t *testing.T) {
 	ctx := context.Background()
 	mredis := &mockRedis{}
 	mbroker := &mockBroker{publishErr: errors.New("publish error")}
-	bs := newTestBattleService(mredis, mbroker, &mockMetrics{})
+	bs := newTestBattleService(mredis, &mockPGStorage{}, mbroker, &mockMetrics{})
 
 	p := domain.Pixel{
 		X:         1,
