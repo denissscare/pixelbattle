@@ -9,6 +9,7 @@ import (
 type PGRepo interface {
 	SavePixelHistory(ctx context.Context, p domain.Pixel) error
 	GetAllPixelHistory(ctx context.Context) ([]domain.Pixel, error)
+	GetLastPixelByAuthor(ctx context.Context, author string) (*domain.Pixel, error)
 }
 
 type Repository struct {
@@ -42,4 +43,18 @@ func (r *Repository) GetAllPixelHistory(ctx context.Context) ([]domain.Pixel, er
 		history = append(history, p)
 	}
 	return history, rows.Err()
+}
+
+func (r *Repository) GetLastPixelByAuthor(ctx context.Context, author string) (*domain.Pixel, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT x, y, color, author, timestamp FROM pixel_history WHERE author = $1 ORDER BY timestamp DESC LIMIT 1`,
+		author)
+	var p domain.Pixel
+	if err := row.Scan(&p.X, &p.Y, &p.Color, &p.Author, &p.Timestamp); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // нет пикселей
+		}
+		return nil, err
+	}
+	return &p, nil
 }

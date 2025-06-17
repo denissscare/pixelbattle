@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"pixelbattle/internal/pixcelbattle/domain"
 	"pixelbattle/internal/pixcelbattle/service"
 	"pixelbattle/pkg/logger"
 	"time"
@@ -50,8 +51,24 @@ func WSHandler(svc *service.BattleService, log *logger.Logger) http.HandlerFunc 
 			log.Errorf("WS: InitCanvas error: %v", err)
 			return
 		}
-		conn.WriteJSON(map[string]interface{}{"type": "init", "payload": canvas})
-		log.Infof("WS: sent initial canvas (%d pixels) to %s", len(canvas), r.RemoteAddr)
+
+		author := r.URL.Query().Get("username")
+		var lastPixel *domain.Pixel
+		if author != "" {
+			lastPixel, err = svc.GetLastPixelByAuthor(ctx, author)
+			if err != nil {
+				log.Warnf("WS: could not fetch last pixel for %s: %v", author, err)
+			}
+		}
+
+		conn.WriteJSON(map[string]interface{}{
+			"type": "init",
+			"payload": map[string]interface{}{
+				"canvas":     canvas,
+				"last_pixel": lastPixel,
+			},
+		})
+		log.Infof("WS: sent initial canvas (%d pixels) + last pixel to %s", len(canvas), r.RemoteAddr)
 
 		updates, err := svc.Stream(ctx)
 		if err != nil {

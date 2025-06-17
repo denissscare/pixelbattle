@@ -32,6 +32,10 @@ func (s *BattleService) GetAllPixelHistory(ctx context.Context) ([]domain.Pixel,
 	return s.pgRepo.GetAllPixelHistory(ctx)
 }
 
+func (s *BattleService) GetLastPixelByAuthor(ctx context.Context, author string) (*domain.Pixel, error) {
+	return s.pgRepo.GetLastPixelByAuthor(ctx, author)
+}
+
 func (s *BattleService) UpdatePixel(ctx context.Context, p domain.Pixel) error {
 	if err := p.Validate(); err != nil {
 		return err

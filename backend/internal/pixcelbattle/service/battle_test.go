@@ -40,6 +40,9 @@ func (pg *mockPGStorage) SavePixelHistory(ctx context.Context, p domain.Pixel) e
 func (pg *mockPGStorage) GetAllPixelHistory(ctx context.Context) ([]domain.Pixel, error) {
 	return nil, nil
 }
+func (pg *mockPGStorage) GetLastPixelByAuthor(ctx context.Context, author string) (*domain.Pixel, error) {
+	return nil, nil
+}
 
 type mockBroker struct {
 	publishedTopic string
