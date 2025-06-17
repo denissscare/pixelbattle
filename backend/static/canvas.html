@@ -120,7 +120,10 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        let socket = new WebSocket("ws://localhost:8080/ws?username=" + localStorage.username);
+        const address = window.location.href.replace('http://', '').replace('https://', '').split('/')[0];
+        console.log(address);
+
+        let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
         var pixelSize = 15;
         var canvasSize = 200;
 
@@ -218,7 +221,7 @@
             ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
             if (color == null) {
                 fetch(
-                    'http://localhost:8080/pixel',
+                    'http://' + address + '/pixel',
                     {
                         method: 'POST',
                         body: JSON.stringify({"X": x, "Y": y, "Color": currentColor, "Author": localStorage.username}),
