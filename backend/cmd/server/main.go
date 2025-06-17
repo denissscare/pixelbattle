@@ -12,6 +12,7 @@ import (
 	"pixelbattle/internal/pixcelbattle/broker"
 	"pixelbattle/internal/pixcelbattle/metrics"
 	"pixelbattle/internal/pixcelbattle/service"
+	pgstorage "pixelbattle/internal/pixcelbattle/storage/postgres"
 	"pixelbattle/internal/pixcelbattle/storage/redis"
 	"pixelbattle/internal/s3"
 	"pixelbattle/internal/server"
@@ -39,6 +40,7 @@ func main() {
 	defer postgresDB.Close()
 
 	userStorage := storage.NewRepository(postgresDB)
+	pixelHistoryStorage := pgstorage.NewRepository(postgresDB)
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -58,7 +60,7 @@ func main() {
 	}
 	defer br.Close()
 
-	pixelbattle := service.NewBattleService(rds, br, log, metrics)
+	pixelbattle := service.NewBattleService(rds, pixelHistoryStorage, br, log, metrics)
 	auth := auth.NewService(userStorage, jwtManager, log, minioClient)
 	router := server.InitRouter(pixelbattle, auth, log, metrics, jwtManager, minioClient, *config)
 
