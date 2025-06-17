@@ -6,6 +6,7 @@ import (
 	"pixelbattle/internal/pixcelbattle/broker"
 	"pixelbattle/internal/pixcelbattle/domain"
 	"pixelbattle/internal/pixcelbattle/metrics"
+	pgrepo "pixelbattle/internal/pixcelbattle/storage/postgres"
 	"pixelbattle/internal/pixcelbattle/storage/redis"
 	"pixelbattle/pkg/logger"
 
@@ -14,13 +15,14 @@ import (
 
 type BattleService struct {
 	repo    redis.RedisRepo
+	pgRepo  pgrepo.PGRepo
 	broker  broker.Broker
 	log     *logger.Logger
 	metrics metrics.Metrics
 }
 
-func NewBattleService(repo redis.RedisRepo, broker broker.Broker, log *logger.Logger, metrics metrics.Metrics) *BattleService {
-	return &BattleService{repo: repo, broker: broker, log: log, metrics: metrics}
+func NewBattleService(repo redis.RedisRepo, pgRepo pgrepo.PGRepo, broker broker.Broker, log *logger.Logger, metrics metrics.Metrics) *BattleService {
+	return &BattleService{repo: repo, pgRepo: pgRepo, broker: broker, log: log, metrics: metrics}
 }
 func (s *BattleService) InitCanvas(ctx context.Context) (map[string]domain.Pixel, error) {
 	return s.repo.GetCanvas(ctx)
@@ -35,6 +37,10 @@ func (s *BattleService) UpdatePixel(ctx context.Context, p domain.Pixel) error {
 		return err
 	}
 	s.metrics.IncPixelsPlaced()
+
+	if err := s.pgRepo.SavePixelHistory(ctx, p); err != nil {
+		s.log.Warnf("Failed to save pixel history: %v", err)
+	}
 
 	data, err := json.Marshal(p)
 	if err != nil {
