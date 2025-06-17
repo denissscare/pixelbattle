@@ -273,13 +273,15 @@
         socket.onmessage = function(event) {
             var data = JSON.parse(event.data);
             if (data.type == 'init'){
-                var payload = data.payload;
-                var keys = Object.keys(payload);
-                for (var key of keys){
-                    fillPixel(payload[key].x, payload[key].y, payload[key].color);
-                }
+            var payload = data.payload;
+            var canvas = payload.canvas;
+            var lastPixel = payload.last_pixel;
+            var keys = Object.keys(canvas);
+            for (var key of keys){
+                fillPixel(canvas[key].x, canvas[key].y, canvas[key].color);
+            }
             } else if (data.type == 'update'){
-                fillPixel(data.payload.x, data.payload.y, data.payload.color);
+                    fillPixel(data.payload.x, data.payload.y, data.payload.color);
             } 
         };
 
