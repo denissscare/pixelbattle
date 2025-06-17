@@ -114,14 +114,18 @@ func InitRouter(svc *service.BattleService,
 		MaxAge:           int((300 * time.Second).Seconds()),
 	}))
 
-	router.Handle("/*", http.FileServer(http.Dir("./static")))
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/index", http.StatusSeeOther)
+	})
 
 	router.With(middleware.NoLogger).Get("/ws", handlers.WSHandler(svc, log))
-	router.Handle("/*", http.FileServer(http.Dir("./static")))
 
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
+	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/index", handlers.CanvasRender(svc, log))
 	router.With(middleware.RequestLogger(log)).Post("/register", authHandlers.RegisterHandler(s3Client, authSvc, log))
+	router.With(middleware.RequestLogger(log)).Get("/register", authHandlers.RegisterRender(authSvc, log))
+	router.With(middleware.RequestLogger(log)).Get("/login", authHandlers.LoginRender(authSvc, log))
 	router.With(middleware.RequestLogger(log)).Post("/login", authHandlers.LoginHandler(authSvc, log, cfg.Minio.PublicHost))
 	router.With(middleware.JWTAuth(jwtManager), middleware.RequestLogger(log)).Post("/avatar", authHandlers.UploadAvatarHandler(authSvc, log))
 

@@ -28,13 +28,16 @@ func (s *Service) Register(username, email, password string) error {
 	if _, err := s.repo.GetUserByEmail(email); err == nil {
 		return errors.New("user with this email already exists")
 	}
+
 	if _, err := s.repo.GetUserByUsername(username); err == nil {
 		return errors.New("user with this username already exists")
 	}
+
 	hash, err := hash.HashPassword(password)
 	if err != nil {
 		return err
 	}
+
 	return s.repo.CreateUser(username, email, hash)
 }
 
@@ -53,6 +56,7 @@ func (s *Service) Login(emailOrUsername, password string) (*domain.User, string,
 	if err != nil {
 		return nil, "", err
 	}
+
 	return user, token, nil
 }
 
@@ -60,13 +64,16 @@ func (s *Service) RegisterWithID(username, email, password string) (int, error) 
 	if _, err := s.repo.GetUserByEmail(email); err == nil {
 		return 0, errors.New("user with this email already exists")
 	}
+
 	if _, err := s.repo.GetUserByUsername(username); err == nil {
 		return 0, errors.New("user with this username already exists")
 	}
+
 	hash, err := hash.HashPassword(password)
 	if err != nil {
 		return 0, err
 	}
+
 	return s.repo.CreateUserReturningID(username, email, hash)
 }
 

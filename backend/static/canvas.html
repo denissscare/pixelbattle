@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Battle Canvas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            margin:0px;
+        }
+        
+        h1 {
+            color: #333;
+        }
+        
+        #profile-pic-div{
+            text-align:center;
+            height: 100px;
+        }
+
+        #profile-pic{
+            height: fit-content;
+        }
+
+        #title{
+            width:100%;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .color-picker {
+            z-index: 1023;
+            width: 50px;
+            height: 30px;
+            border: 1px solid #999;
+        }
+        
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .top-panel{
+            z-index: 1022;
+            background-color: #eee;
+            width: 90%;
+            height: 150px;
+            margin: 0px;
+            border: solid 1px #333;
+            border-radius: 5px;
+        }
+        .right-panel{
+            z-index: 1022;
+            background-color: #eee;
+            height: 150px;
+            width: 10%;
+            margin: 0px;
+            border: solid 1px #333;
+            border-radius: 5px;
+        }
+        .tools{
+            display: flex;
+            width: 100%;
+        }
+        .user-info{
+            display: flex;
+            justify-content: start;
+        }
+
+        .canvas-container {
+            margin-top: 10px;
+            border: 2px solid #333;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            overflow-x: auto;
+            overflow-y: auto;
+            width: 90vw;
+            height: 80vh;
+        }
+        
+        #pixelCanvas {
+            position: absolute;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="tools">
+        <div class="top-panel">
+            <h1 id="title">Pixel Battle</h1>
+            <div class="user-info">
+                <div id="profile-pic-div"></div>
+                <h2 id="username"></h2>
+            </div>
+        </div>
+        <div class="right-panel">
+            <button type="button" id="logout" onclick="logoutPB()">Выход</button>
+            <input type="color" class="color-picker" value="#ff0000" id="colorPicker">
+        </div>
+    </div>
+    <canvas id="pixelCanvas"></canvas>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        let socket = new WebSocket("ws://localhost:8080/ws?username=" + localStorage.username);
+        var pixelSize = 15;
+        var canvasSize = 200;
+
+        let zoom = 1;
+
+        let isRightMouseDown = false;
+        let startX = 0;
+        let startY = 0;
+
+        let canvas = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let usernameHeader = $('#username')[0];
+            usernameHeader.innerText = 'Добрый день, ' + localStorage.username + '!';
+
+            let pp = $('#profile-pic-div')[0];
+            let img = '<img id="profile-pic" src="' + localStorage.avatar + '" />'
+            pp.innerHTML = img;
+
+            canvas = document.getElementById('pixelCanvas');
+            canvas.width = canvasSize * pixelSize;
+            canvas.height = canvasSize * pixelSize;
+            const ctx = canvas.getContext('2d');
+            const colorPicker = document.getElementById('colorPicker');
+            
+            let currentColor = colorPicker.value;
+            
+            function initCanvas() {
+                canvas.innerHTML = '';
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 0.5;
+                
+                for (let x = 0; x <= canvas.width; x += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                
+                for (let y = 0; y <= canvas.height; y += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+
+                canvas.addEventListener('click', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
+                    const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
+                    fillPixel(x, y);
+                });
+            }
+            
+            colorPicker.addEventListener('input', function() {
+                currentColor = this.value;
+            });
+            
+            initCanvas();
+        });
+
+
+        document.addEventListener("wheel", function(e) {  
+            let maxZoom = 2;
+            let minZoom = 0.3;
+            const zoomFactor = 0.05;
+            const zoomDirection = e.deltaY > 0 ? -1 : 1;
+
+            const newScale = zoom + zoomDirection * zoomFactor;
+            
+            if (newScale < minZoom || newScale > maxZoom) return;
+            
+            zoom = newScale;
+
+            canvas.style.transform = `scale(${zoom})`;
+        });
+
+
+        function fillPixel(x, y, color=null) {
+            const ctx = canvas.getContext('2d');
+
+            let currentColor = document.getElementById('colorPicker').value;
+
+            const pixelX = x * pixelSize;
+            const pixelY = y * pixelSize;
+            
+            if (color == null){
+                ctx.fillStyle = currentColor;
+            } else {
+                ctx.fillStyle = color;
+            }
+
+            ctx.fillRect(pixelX, pixelY, pixelSize, pixelSize);
+            ctx.strokeStyle = '#666';
+            ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+            if (color == null) {
+                fetch(
+                    'http://localhost:8080/pixel',
+                    {
+                        method: 'POST',
+                        body: JSON.stringify({"X": x, "Y": y, "Color": currentColor, "Author": localStorage.username}),
+
+                    }
+                )
+            }
+        }
+
+
+        document.addEventListener('mousedown', (event) => {
+            if (event.button === 2) {
+                isRightMouseDown = true;
+                startX = event.clientX;
+                startY = event.clientY;
+            }
+        });
+
+
+        document.addEventListener('mousemove', (event) => {
+            if (isRightMouseDown) {
+                var deltaX = startX - event.clientX;
+                var deltaY = startY - event.clientY;
+                if (canvas.offsetTop - deltaY < 1200 * zoom && canvas.offsetTop - deltaY + canvas.height /2 > -1200 * zoom) {
+                    canvas.style.top = (canvas.offsetTop - deltaY) + 'px';
+                } else {
+                    canvas.style.top = (canvas.offsetTop > 0 ? 1 : -1) * 1200 * zoom - (canvas.offsetTop < 0 ? canvas.height /2 : 0) + 'px' ;
+                }
+                if (canvas.offsetLeft - deltaX < 2500 * zoom && canvas.offsetLeft - deltaX > -2500 * zoom) {
+                    canvas.style.left = (canvas.offsetLeft - deltaX) + 'px';
+                } else {
+                    canvas.style.left = (canvas.offsetLeft > 0 ? 1 : -1) * 2500 * zoom + 'px';
+                }
+                startX = event.clientX;
+                startY = event.clientY;
+            }
+        });
+
+
+        document.addEventListener('mouseup', (event) => {
+            if (event.button === 2) {
+                isRightMouseDown = false;
+            }
+        });
+
+
+        document.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+        });
+
+
+        socket.onmessage = function(event) {
+            var data = JSON.parse(event.data);
+            if (data.type == 'init'){
+                var payload = data.payload;
+                var keys = Object.keys(payload);
+                for (var key of keys){
+                    fillPixel(payload[key].x, payload[key].y, payload[key].color);
+                }
+            } else if (data.type == 'update'){
+                fillPixel(data.payload.x, data.payload.y, data.payload.color);
+            } 
+        };
+
+        function logoutPB(){
+            let now = new Date()
+            let expireTime = now.getTime() + 1000;
+            now.setTime(expireTime);
+
+            document.cookie = "access_token=;expires="+now.toUTCString()+";path=/";
+            localStorage.removeItem("username");
+            localStorage.removeItem("avatar");
+            window.location.href="/";
+        }
+    </script>
+
+</html>

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
 	auth "pixelbattle/internal/auth/service"
 	"pixelbattle/pkg/logger"
@@ -12,6 +13,18 @@ type LoginRequest struct {
 	Password        string `json:"password"`
 }
 
+func LoginRender(svc *auth.Service, log *logger.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data := ""
+		if tmpl, err := template.ParseFiles("static/signin.html"); err != nil {
+			log.Errorf("HTTP GET /login: cannot open signin.html: %v", err)
+			http.Error(w, "cannot open signin.html", http.StatusBadRequest)
+		} else {
+			tmpl.Execute(w, data)
+		}
+	}
+}
+
 func LoginHandler(svc *auth.Service, log *logger.Logger, minioHost string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req LoginRequest
@@ -20,11 +33,13 @@ func LoginHandler(svc *auth.Service, log *logger.Logger, minioHost string) http.
 			http.Error(w, "invalid request", http.StatusBadRequest)
 			return
 		}
+
 		if req.EmailOrUsername == "" || req.Password == "" {
 			log.Infof("HTTP POST /login missing fields: %+v", req)
 			http.Error(w, "missing fields", http.StatusBadRequest)
 			return
 		}
+
 		user, token, err := svc.Login(req.EmailOrUsername, req.Password)
 		if err != nil {
 			log.Infof("HTTP POST /login failed for user %s: %v", req.EmailOrUsername, err)

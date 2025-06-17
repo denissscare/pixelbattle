@@ -32,6 +32,24 @@ func New(cfg config.Config) (*Client, error) {
 			return nil, err
 		}
 	}
+
+	policy := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Principal": {"AWS": ["*"]},
+				"Action": ["s3:GetObject"],
+				"Resource": ["arn:aws:s3:::avatars/*"]
+			}
+		]
+	}`
+
+	err = cli.SetBucketPolicy(ctx, "avatars", policy)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{cli: cli, bucket: cfg.Minio.Bucket}, nil
 }
 
