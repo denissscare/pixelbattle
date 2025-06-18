@@ -63,7 +63,7 @@
             width: 90%;
             height: 150px;
             margin: 0px;
-            border: solid 1px #333;
+            border: solid 1px #747474;
             border-radius: 5px;
         }
         .right-panel{
@@ -72,7 +72,7 @@
             height: 150px;
             width: 10%;
             margin: 0px;
-            border: solid 1px #333;
+            border: solid 1px #747474;
             border-radius: 5px;
         }
         .tools{
@@ -82,16 +82,6 @@
         .user-info{
             display: flex;
             justify-content: start;
-        }
-
-        .canvas-container {
-            margin-top: 10px;
-            border: 2px solid #333;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            overflow-x: auto;
-            overflow-y: auto;
-            width: 90vw;
-            height: 80vh;
         }
         
         #pixelCanvas {
@@ -127,7 +117,7 @@
             left: 0;
             height: 4px;
             width: 100%;
-            background: #b7b7b7;
+            background: #4CAF50;
             animation: toastProgress 3s
                         ease-in-out forwards;
             }
@@ -185,6 +175,8 @@
         </div>
         <div class="right-panel">
             <button type="button" id="logout" onclick="logoutPB()">Выход</button>
+            <button type="button" id="logout" onclick="toggleGrit()">Сетка</button>
+            <button type="button" id="logout" onclick="openSettingsForm()">Настройки</button>
             <input type="color" class="color-picker" value="#ff0000" id="colorPicker">
         </div>
     </div>
@@ -195,6 +187,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         const address = window.location.href.replace('http://', '').replace('https://', '').split('/')[0];
+        let pixels = {};
         let pixelTimeout = null;
         let lastPixelTime = null;
         let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
@@ -208,6 +201,7 @@
         let startY = 0;
 
         let canvas = null;
+        let grit = true;
 
         document.addEventListener('DOMContentLoaded', function() {
             let usernameHeader = $('#username')[0];
@@ -220,37 +214,9 @@
             canvas = document.getElementById('pixelCanvas');
             canvas.width = canvasSize * pixelSize;
             canvas.height = canvasSize * pixelSize;
-            const ctx = canvas.getContext('2d');
             const colorPicker = document.getElementById('colorPicker');
             
             let currentColor = colorPicker.value;
-            
-            function initCanvas() {
-                canvas.innerHTML = '';
-                ctx.strokeStyle = '#666';
-                ctx.lineWidth = 0.5;
-                
-                for (let x = 0; x <= canvas.width; x += pixelSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
-                    ctx.stroke();
-                }
-                
-                for (let y = 0; y <= canvas.height; y += pixelSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(canvas.width, y);
-                    ctx.stroke();
-                }
-
-                canvas.addEventListener('click', (e) => {
-                    const rect = canvas.getBoundingClientRect();
-                    const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
-                    const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
-                    fillPixel(x, y);
-                });
-            }
             
             colorPicker.addEventListener('input', function() {
                 currentColor = this.value;
@@ -259,6 +225,61 @@
             initCanvas();
         });
 
+        function initCanvas() {
+            const ctx = canvas.getContext('2d');
+            canvas.innerHTML = '';
+            ctx.strokeStyle = '#AAA';
+            ctx.lineWidth = 0.5;
+            if (grit){
+                ctx.strokeStyle = '#AAA';
+                ctx.lineWidth = 0.5;
+
+                for (let x = 0; x <= canvas.width; x += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                    
+                for (let y = 0; y <= canvas.height; y += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+            } else {
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, canvas.height);
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(canvas.width, 0);
+                ctx.lineTo(0, 0);
+                ctx.stroke();
+            }
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
+                const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
+                fillPixel(x, y);
+            });
+            // canvas.addEventListener('mouseover', (e) => {
+            //     const rect = canvas.getBoundingClientRect();
+            //     const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
+            //     const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
+            //     fillPixel(x, y);
+            //     ctx.strokeStyle = '#AAA';
+            //     ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+            // });
+            if (pixels.length !== 0){
+                var keys = Object.keys(pixels);
+                for (var key of keys){
+                    fillPixel(pixels[key].x, pixels[key].y, pixels[key].color);
+                }
+            }
+        }
 
         document.addEventListener("wheel", function(e) {  
             let maxZoom = 2;
@@ -299,10 +320,13 @@
             } else {
                 ctx.fillStyle = color;
             }
+            pixels[(x+":"+y)] = {"x": x, "y": y, "color": ctx.fillStyle};
 
             ctx.fillRect(pixelX, pixelY, pixelSize, pixelSize);
-            ctx.strokeStyle = '#666';
-            ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+            if (grit){
+                ctx.strokeStyle = '#AAA';
+                ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+            }
             if (color == null) {
                 fetch(
                     'http://' + address + '/pixel',
@@ -313,6 +337,7 @@
                     }
                 )
             }
+            console.log(pixels);
         }
 
 
@@ -373,6 +398,7 @@
             } 
         };
 
+
         function logoutPB(){
             let now = new Date()
             let expireTime = now.getTime() + 1000;
@@ -383,6 +409,7 @@
             localStorage.removeItem("avatar");
             window.location.href="/";
         }
+
 
         function showToast(errorText, duration){
             if ($('.toast').length != 0){$('.toast').remove()}
@@ -398,6 +425,14 @@
             toast.appendChild(box);
             toast.style.display = 'block';
             $('body')[0].appendChild(toast);
+        }
+
+
+        function toggleGrit(){
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            grit = !grit;
+            initCanvas();
         }
     </script>
 
