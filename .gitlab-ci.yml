@@ -1,0 +1,34 @@
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  DOCKER_DRIVER: overlay2
+
+stages:
+  - build
+  # - test
+  # - deploy
+
+build-image:
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+  script:
+    - docker build -t $IMAGE_TAG
+    - docker push $IMAGE_TAG
+  only:
+    - main
+
+# test:
+#   stage: test
+#   before_script:
+#     - cd backend
+#   script:
+#     - go test ./...
+#   after-script:
+#     - cd ..
+
+# deploy-in-portainer:
+#   stage: deploy
+#   script:
+#   - curl -X POST $PORTAINER_HOOK
