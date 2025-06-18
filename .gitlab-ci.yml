@@ -31,4 +31,4 @@ test:
 build-and-deploy:
   stage: deploy
   script:
-  - curl -X POST $PORTAINER_HOOK
+  - curl -k -X POST $PORTAINER_HOOK
