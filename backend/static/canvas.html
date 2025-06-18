@@ -6,7 +6,7 @@
     <title>PixelBattle for Cringe and Deranged Kids</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Trebuchet MS', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -14,19 +14,33 @@
             overflow-x: hidden;
             overflow-y: hidden;
             margin:0px;
+            background-color: #e5e5f7;
+            background-image:  repeating-linear-gradient(45deg, #4caf4f75 25%, transparent 25%, transparent 75%, #4caf4f75 75%, #4caf4f75), repeating-linear-gradient(45deg, #4caf4f75 25%, #e5e5f7 25%, #e5e5f7 75%, #4caf4f75 75%, #4caf4f75);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
         }
         
         h1 {
+            font-size: 40px;
             color: #333;
+            margin: 10px
         }
-        
+        h2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         #profile-pic-div{
             text-align:center;
+            vertical-align: middle;
             height: 100px;
+            border: solid 3px#4CAF50;
+            border-radius: 3px;
+            margin: 0px 10px 10px 10px
         }
 
         #profile-pic{
-            height: fit-content;
+            height: inherit;
         }
 
         #title{
@@ -51,6 +65,8 @@
             color: white;
             border: none;
             border-radius: 4px;
+            width: 90%;
+            margin: 8px;
         }
         
         button:hover {
@@ -60,25 +76,28 @@
         .top-panel{
             z-index: 1000;
             background-color: #eee;
-            width: 90%;
-            height: 150px;
+            width: 87%;
+            height: 190px;
             margin: 0px;
             border: solid 1px #747474;
-            border-radius: 5px;
+            border-radius: 0px 0px 7px 7px;
         }
         .right-panel{
             z-index: 1000;
             background-color: #eee;
-            height: 150px;
-            width: 10%;
+            height: 190px;
+            width: 13%;
             margin: 0px;
             border: solid 1px #747474;
-            border-radius: 5px;
+            border-radius: 0px 0px 7px 7px;
+            text-align: center;
         }
         .tools{
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
             width: 100%;
         }
+
         .user-info{
             display: flex;
             justify-content: start;
@@ -86,8 +105,17 @@
         
         #pixelCanvas {
             position: absolute;
+            box-shadow: 0 0 14px rgba(0, 0, 0, 0.1);
+            background-color: #F0F0F0;
         }
 
+        #logout{
+            margin-top: 10px;
+            background-color: #c4492a;
+        }
+        #logout:hover{
+            background-color: #a33c23;
+        }
 
         .toast {
             z-index: 1002;
@@ -167,7 +195,7 @@
 <body>
     <div class="tools">
         <div class="top-panel">
-            <h1 id="title">Pixel Battle</h1>
+            <h1 id="title">PixelBattle for Cringe and Deranged Kids</h1>
             <div class="user-info">
                 <div id="profile-pic-div"></div>
                 <h2 id="username"></h2>
@@ -175,9 +203,9 @@
         </div>
         <div class="right-panel">
             <button type="button" id="logout" onclick="logoutPB()">Выход</button>
-            <button type="button" id="logout" onclick="toggleGrit()">Сетка</button>
-            <button type="button" id="logout" onclick="openSettingsForm()">Настройки</button>
+            <button type="button" id="grit" onclick="toggleGrit()">Сетка</button>
             <input type="color" class="color-picker" value="#ff0000" id="colorPicker">
+            <button type="button" id="settings" onclick="openSettingsForm()">Настройки</button>
         </div>
     </div>
     <canvas id="pixelCanvas"></canvas>
@@ -192,7 +220,7 @@
         let lastPixelTime = null;
         let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
         var pixelSize = 15;
-        var canvasSize = 200;
+        var canvasSize = 300;
         let selectedPixel = null;
         let zoom = 1;
 
@@ -248,16 +276,7 @@
                     ctx.stroke();
                 }
             } else {
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 1;
-
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, canvas.height);
-                ctx.lineTo(canvas.width, canvas.height);
-                ctx.lineTo(canvas.width, 0);
-                ctx.lineTo(0, 0);
-                ctx.stroke();
+                drawOutline();
             }
             canvas.addEventListener('click', (e) => {
                 const rect = canvas.getBoundingClientRect();
@@ -279,8 +298,12 @@
                         if (grit){
                             ctx.strokeStyle = '#AAA';
                             ctx.strokeRect(selectedPixel[0] * pixelSize, selectedPixel[1] * pixelSize, pixelSize, pixelSize);
+                        } else {
+                            drawOutline();
                         }
-                    }              
+                    }  
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    initCanvas();       
                     const pixelX = x * pixelSize;
                     const pixelY = y * pixelSize;
                     selectedPixel = [x, y];
@@ -447,6 +470,20 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             grit = !grit;
             initCanvas();
+        }
+
+        function drawOutline(){
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(canvas.width, 0);
+            ctx.lineTo(0, 0);
+            ctx.stroke();
         }
     </script>
 
