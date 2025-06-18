@@ -254,69 +254,39 @@
         });
 
         function initCanvas() {
-            const ctx = canvas.getContext('2d');
-            canvas.innerHTML = '';
-            ctx.strokeStyle = '#AAA';
-            ctx.lineWidth = 0.5;
-            if (grit){
-                ctx.strokeStyle = '#AAA';
-                ctx.lineWidth = 0.5;
+            
+            redrawCanvas();
 
-                for (let x = 0; x <= canvas.width; x += pixelSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
-                    ctx.stroke();
-                }
-                    
-                for (let y = 0; y <= canvas.height; y += pixelSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(canvas.width, y);
-                    ctx.stroke();
-                }
-            } else {
-                drawOutline();
-            }
+            
             canvas.addEventListener('click', (e) => {
+                const ctx = canvas.getContext('2d');
                 const rect = canvas.getBoundingClientRect();
                 const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
                 const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
                 fillPixel(x, y);
             });
             canvas.addEventListener('mousemove', (e) => {
+                
                 const rect = canvas.getBoundingClientRect();
-                const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
-                const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
+                const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize) * pixelSize;
+                const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize) * pixelSize;
+
                 if (selectedPixel == null || selectedPixel[0] !== x || selectedPixel[1] !== y){ 
-                    if (selectedPixel !== null){
-                        ctx.clearRect(
-                            selectedPixel[0] * pixelSize - 1, 
-                            selectedPixel[1] * pixelSize - 1, 
-                            pixelSize + 2, 
-                            pixelSize + 2);
-                        if (grit){
-                            ctx.strokeStyle = '#AAA';
-                            ctx.strokeRect(selectedPixel[0] * pixelSize, selectedPixel[1] * pixelSize, pixelSize, pixelSize);
-                        } else {
-                            drawOutline();
-                        }
-                    }  
+                    const ctx = canvas.getContext('2d');
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    initCanvas();       
-                    const pixelX = x * pixelSize;
-                    const pixelY = y * pixelSize;
-                    selectedPixel = [x, y];
+                    redrawCanvas();
+
                     ctx.strokeStyle = '#333';
-                    ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+                    ctx.beginPath();
+                    ctx.moveTo(x            , y);
+                    ctx.lineTo(x + pixelSize, y);
+                    ctx.lineTo(x + pixelSize, y + pixelSize);
+                    ctx.lineTo(x            , y + pixelSize);
+                    ctx.lineTo(x            , y);
+                    ctx.stroke();
+                    selectedPixel = [x, y];
                 }
             });
-            if (pixels.length !== 0){
-                var keys = Object.keys(pixels);
-                for (var key of keys){
-                    fillPixel(pixels[key].x, pixels[key].y, pixels[key].color);
-                }
-            }
         }
 
         document.addEventListener("wheel", function(e) {  
@@ -431,7 +401,9 @@
                     fillPixel(canvas[key].x, canvas[key].y, canvas[key].color);
                 }
             } else if (data.type == 'update'){
-                fillPixel(data.payload.x, data.payload.y, data.payload.color);
+                if ((data.payload.x +':'+data.payload.y) in pixels && pixels[(data.payload.x +':'+data.payload.y)].color !== data.payload.color){
+                    fillPixel(data.payload.x, data.payload.y, data.payload.color);
+                }
             } 
         };
 
@@ -469,13 +441,13 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             grit = !grit;
-            initCanvas();
+            redrawCanvas();
         }
 
         function drawOutline(){
             const ctx = canvas.getContext('2d');
             ctx.strokeStyle = '#333';
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 0.5;
 
             ctx.beginPath();
             ctx.moveTo(0, 0);
@@ -484,6 +456,38 @@
             ctx.lineTo(canvas.width, 0);
             ctx.lineTo(0, 0);
             ctx.stroke();
+        }
+
+        function redrawCanvas(){
+            const ctx = canvas.getContext('2d');
+            canvas.innerHTML = '';
+            ctx.strokeStyle = '#AAA';
+            ctx.lineWidth = 0.5;
+            if (grit){
+                ctx.strokeStyle = '#AAA';
+                ctx.lineWidth = 0.5;
+
+                for (let x = 0; x <= canvas.width; x += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                    
+                for (let y = 0; y <= canvas.height; y += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+            } else {
+                drawOutline();
+            }
+
+            var keys = Object.keys(pixels);
+            for (var key of keys){
+                fillPixel(pixels[key].x, pixels[key].y, pixels[key].color);
+            }
         }
     </script>
 
