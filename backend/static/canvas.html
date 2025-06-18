@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Battle Canvas</title>
+    <title>PixelBattle for Cringe and Deranged Kids</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -193,7 +193,7 @@
         let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
         var pixelSize = 15;
         var canvasSize = 200;
-
+        let selectedPixel = null;
         let zoom = 1;
 
         let isRightMouseDown = false;
@@ -265,14 +265,29 @@
                 const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
                 fillPixel(x, y);
             });
-            // canvas.addEventListener('mouseover', (e) => {
-            //     const rect = canvas.getBoundingClientRect();
-            //     const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
-            //     const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
-            //     fillPixel(x, y);
-            //     ctx.strokeStyle = '#AAA';
-            //     ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
-            // });
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
+                const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
+                if (selectedPixel == null || selectedPixel[0] !== x || selectedPixel[1] !== y){ 
+                    if (selectedPixel !== null){
+                        ctx.clearRect(
+                            selectedPixel[0] * pixelSize - 1, 
+                            selectedPixel[1] * pixelSize - 1, 
+                            pixelSize + 2, 
+                            pixelSize + 2);
+                        if (grit){
+                            ctx.strokeStyle = '#AAA';
+                            ctx.strokeRect(selectedPixel[0] * pixelSize, selectedPixel[1] * pixelSize, pixelSize, pixelSize);
+                        }
+                    }              
+                    const pixelX = x * pixelSize;
+                    const pixelY = y * pixelSize;
+                    selectedPixel = [x, y];
+                    ctx.strokeStyle = '#333';
+                    ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+                }
+            });
             if (pixels.length !== 0){
                 var keys = Object.keys(pixels);
                 for (var key of keys){
@@ -337,7 +352,6 @@
                     }
                 )
             }
-            console.log(pixels);
         }
 
 
