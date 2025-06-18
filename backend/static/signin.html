@@ -187,8 +187,24 @@
             document.cookie = "access_token=" + data.token +";expires="+now.toUTCString()+";path=/";
             window.location.href = '/index';
         } else {
-            alert('Login failed');
+            let message = await response.text();
+            showToast(message);
         }
     }
+    function showToast(errorText, duration){
+            if ($('.toast').length != 0){$('.toast').remove()}
+            box = document.createElement('div');
+            toast = document.createElement('div');
+            toast.className = "toast"
+            toast.innerText = errorText;
+            box.className = "toast-progress";
+
+            duration = duration || 5000;
+            toast.style.animationDuration = `${duration / 1000}`;
+            box.style.animationDuration = `${duration / 1000}`;
+            toast.appendChild(box);
+            toast.style.display = 'block';
+            $('body')[0].appendChild(toast);
+        }
 </script>
 </html>

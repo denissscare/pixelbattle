@@ -62,11 +62,11 @@ func (s *Service) Login(emailOrUsername, password string) (*domain.User, string,
 
 func (s *Service) RegisterWithID(username, email, password string) (int, error) {
 	if _, err := s.repo.GetUserByEmail(email); err == nil {
-		return 0, errors.New("user with this email already exists")
+		return 0, errors.New("Почта занята")
 	}
 
 	if _, err := s.repo.GetUserByUsername(username); err == nil {
-		return 0, errors.New("user with this username already exists")
+		return 0, errors.New("Логин занят")
 	}
 
 	hash, err := hash.HashPassword(password)

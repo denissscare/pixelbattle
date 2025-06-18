@@ -183,7 +183,8 @@
 <body>
     <div class="auth-container">
         <h2>Регистрация</h2>
-        <form action="/register", enctype="multipart/form-data", method="post">
+        <!-- <form action="/register", enctype="multipart/form-data", method="post"> -->
+        <form>
             <div class="form-group">
                 <label for="avatar">Аватар (необязательно):</label>
                 <img id="avatar-preview" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Arial' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EИзображение%3C/text%3E%3C/svg%3E" 
@@ -235,6 +236,48 @@
             } else {
                 preview.src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Arial' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EИзображение%3C/text%3E%3C/svg%3E";
             }
+        }
+
+        $('form')[0].addEventListener('submit', function(e){
+            e.preventDefault(); 
+            const formData = new FormData(this);
+            const password = formData.get('password');
+            if (password != formData.get('confirmPassword')){
+                showToast('Введенные пароли не совпадают')
+                return
+            }
+
+            if (password.length < 8){
+                showToast('Пароль должен состоять минимум из 8 знаков')
+                return
+            }
+
+            fetch('/register', {
+                method: 'POST',
+                body: formData,
+            }).then(response => {
+                if (response.ok){
+                    window.location.href = '/login'
+                } else {
+                    response.text().then(text => showToast(text))
+                }
+            })
+        })
+
+        function showToast(errorText, duration){
+            if ($('.toast').length != 0){$('.toast').remove()}
+            box = document.createElement('div');
+            toast = document.createElement('div');
+            toast.className = "toast"
+            toast.innerText = errorText;
+            box.className = "toast-progress";
+
+            duration = duration || 5000;
+            toast.style.animationDuration = `${duration / 1000}`;
+            box.style.animationDuration = `${duration / 1000}`;
+            toast.appendChild(box);
+            toast.style.display = 'block';
+            $('body')[0].appendChild(toast);
         }
     </script>
 </body>
