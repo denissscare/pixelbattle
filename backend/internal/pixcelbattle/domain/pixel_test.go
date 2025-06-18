@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,4 +37,5 @@ func TestValidate(t *testing.T) {
 	}
 	require.Error(t, p.Validate())
 
+	assert.Equal(t, 1, 0)
 }
