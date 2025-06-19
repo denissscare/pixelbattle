@@ -123,11 +123,13 @@ func InitRouter(svc *service.BattleService,
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/canvas", handlers.CanvasHandler(svc, log))
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/pixel", handlers.UpdatePixelHandler(svc, log))
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/index", handlers.CanvasRender(svc, log))
-	router.With(middleware.RequestLogger(log)).Post("/register", authHandlers.RegisterHandler(s3Client, authSvc, log))
-	router.With(middleware.RequestLogger(log)).Get("/register", authHandlers.RegisterRender(authSvc, log))
-	router.With(middleware.RequestLogger(log)).Get("/login", authHandlers.LoginRender(authSvc, log))
-	router.With(middleware.RequestLogger(log)).Post("/login", authHandlers.LoginHandler(authSvc, log, cfg.Minio.PublicHost))
-	router.With(middleware.JWTAuth(jwtManager), middleware.RequestLogger(log)).Post("/avatar", authHandlers.UploadAvatarHandler(authSvc, log))
+	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/register", authHandlers.RegisterHandler(s3Client, authSvc, log))
+	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/register", authHandlers.RegisterRender(authSvc, log))
+	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/login", authHandlers.LoginRender(authSvc, log))
+	router.With(middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/login", authHandlers.LoginHandler(authSvc, log, cfg.Minio.PublicHost))
+	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/avatar", authHandlers.UploadAvatarHandler(authSvc, log))
+	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Post("/email", authHandlers.UpdateEmailHandler(authSvc, log))
+
 	router.With(middleware.JWTAuth(jwtManager), middleware.Metrics(metrics), middleware.RequestLogger(log)).Get("/pixels/history", handlers.PixelHistoryHandler(svc, log))
 
 	router.Handle("/metrics", promhttp.Handler())
