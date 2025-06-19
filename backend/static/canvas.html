@@ -439,7 +439,9 @@
             usernameHeader.innerText = 'Добрый день, ' + localStorage.username + '!';
 
             let pp = $('#profile-pic-div')[0];
-            let img = '<img id="profile-pic" src="' + localStorage.avatar + '" />'
+            let avatarPath = localStorage.avatar.split('/');
+            avatarPath = avatarPath[avatarPath.length-2] + '/' + avatarPath[avatarPath.length-1];
+            let img = '<img id="profile-pic" src="' + address + '/' + avatarPath + '" />'
             pp.innerHTML = img;
 
             canvas = document.getElementById('pixelCanvas');
