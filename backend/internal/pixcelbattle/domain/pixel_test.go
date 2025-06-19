@@ -35,5 +35,4 @@ func TestValidate(t *testing.T) {
 		Timestamp: time.Now().Add(time.Hour),
 	}
 	require.Error(t, p.Validate())
-
 }

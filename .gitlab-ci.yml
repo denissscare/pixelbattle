@@ -1,0 +1,21 @@
+stages:
+  - test
+  - deploy
+
+test:
+  stage: test
+  before_script:
+    - cd backend
+  script:
+    - go test -cover ./...
+  after_script:
+    - cd ..
+  only:
+    - main
+
+build-and-deploy:
+  stage: deploy
+  script:
+  - curl -k -X POST $PORTAINER_HOOK
+  only:
+    - main
