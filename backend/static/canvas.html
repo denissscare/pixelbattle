@@ -440,8 +440,9 @@
 
             let pp = $('#profile-pic-div')[0];
             let avatarPath = localStorage.avatar.split('/');
+            let avatarPort = avatarPath[avatarPath.length-3].split(':')[1]
             avatarPath = avatarPath[avatarPath.length-2] + '/' + avatarPath[avatarPath.length-1];
-            let img = '<img id="profile-pic" src="' + address + '/' + avatarPath + '" />'
+            let img = '<img id="profile-pic" src="' + address.split(':')[0] + ':' + avatarPort + '/' + avatarPath + '" />'
             pp.innerHTML = img;
 
             canvas = document.getElementById('pixelCanvas');
@@ -595,6 +596,7 @@
 
         socket.onmessage = function(event) {
             var data = JSON.parse(event.data);
+            console.log(data);
             if (data.type == 'init'){
                 var payload = data.payload;
                 var canvas = payload.canvas;
