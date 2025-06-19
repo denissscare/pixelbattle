@@ -99,3 +99,10 @@ func (s *Service) UploadAvatar(ctx context.Context, userID int, fileHeader *mult
 	}
 	return nil
 }
+
+func (s *Service) UpdateEmail(userID int, email string) error {
+	if _, err := s.repo.GetUserByEmail(email); err == nil {
+		return errors.New("почта уже используется")
+	}
+	return s.repo.UpdateEmail(userID, email)
+}
