@@ -109,11 +109,11 @@
             background-color: #F0F0F0;
         }
 
-        #logout{
+        .logout{
             margin-top: 10px;
             background-color: #c4492a;
         }
-        #logout:hover{
+        .logout:hover{
             background-color: #a33c23;
         }
 
@@ -190,6 +190,103 @@
                 width: 0%;
             }
             }
+            .dialog-header{
+                display: flex;
+                justify-content: space-between;
+                color: #4CAF50;
+                font-family: 'Trebuchet MS', sans-serif;
+            }
+            .dialog-header .dialog-title{
+                margin-top: 10px;
+                display: inline-block;
+                font-size: 28px;
+                font-weight: 900;
+            }
+            .dialog-header .close-btn-div{
+                display: inline-block;
+            }
+            .dialog-header button{
+                margin-left: 10px;
+            }
+            .dialog-window{
+                font-family: 'Trebuchet MS', sans-serif;
+                border: solid 1px #4CAF50;
+                border-radius: 5px;
+            }
+            .dialog-form label{
+                font-family: 'Trebuchet MS', sans-serif;
+                font-weight: bolder;
+                color: #4CAF50;
+            }
+
+            .dialog-body{
+                display: flex;
+                justify-content: space-between;
+                color: #4CAF50;
+                font-family: 'Trebuchet MS', sans-serif;
+                height: fit-content;
+                
+            }
+            .setting{
+                display: flex;
+                flex-direction: column;
+                width: 50%;
+                height: 250px;
+            }
+            .setting-header{
+                height: 68px;
+            }
+            .setting-body{
+                text-align: center;
+                flex-grow: 1;
+            }
+            .form-button{
+                margin-top: auto;
+            }
+            input[type="text"],
+            input[type="password"] {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-sizing: border-box;
+            }
+            .create-dialog-header{
+                text-align: right;
+            }
+            .delimeter{
+                width: 0px;
+                border: dashed 2px #4CAF50 ;
+                height: 250px;
+                margin: 0px 20px 0px 10px
+            }
+            #update-email{
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            #update-pp{
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            .success{
+                color: #4CAF50;
+                border: dashed 2px #4CAF50;
+            }
+            .fail{
+                color: #c4492a;
+                border: dashed 2px #c4492a;
+            }
+            .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+            border: 2px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -202,7 +299,7 @@
             </div>
         </div>
         <div class="right-panel">
-            <button type="button" id="logout" onclick="logoutPB()">Выход</button>
+            <button type="button" class="logout" onclick="logoutPB()">Выход</button>
             <button type="button" id="grit" onclick="toggleGrit()">Сетка</button>
             <input type="color" class="color-picker" value="#ff0000" id="colorPicker">
             <button type="button" id="settings" onclick="openSettingsForm()">Настройки</button>
@@ -210,6 +307,38 @@
     </div>
     <canvas id="pixelCanvas"></canvas>
     <div class="toast"></div>
+    <dialog id="setting-dialog" class="dialog-window">
+        <div class="dialog-header">
+            <div class="dialog-title">Настройки</div>
+            <div class="close-btn-div"><button id="close-form" class="logout">×</button></div>
+        </div>
+        <div class="dialog-body"> 
+            <div class="setting">
+                <div class="setting-header"><h2>Обновить почту</h2></div>
+                <div class="setting-body">
+                    <form id="update-email">                    
+                        <input type="email" id="email" name="email" required>
+                        <div class="status"></div>
+                        <button class="form-button" type="submit">Обновить</button>
+                    </form>
+                </div>
+            </div>
+            <div class="delimeter"></div>
+            <div class="setting">
+                <div class="setting-header"><h2>Обновить аватар</h2></div>
+                <div class="setting-body">
+                    <form id="update-pp">
+                        <input type="file" id="avatar" name="avatar" accept="image/*" onchange="previewAvatar(this)" required>
+                        <img id="avatar-preview" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Trebuchet MS' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EПревью%3C/text%3E%3C/svg%3E" 
+                     alt="Предпросмотр аватара" class="avatar-preview">
+                        <div class="status"></div>
+                        <button class="form-button" type="submit">Обновить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    </dialog>
 </body>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -341,7 +470,6 @@
                     {
                         method: 'POST',
                         body: JSON.stringify({"X": x, "Y": y, "Color": currentColor, "Author": localStorage.username}),
-
                     }
                 )
             }
@@ -489,6 +617,65 @@
                 fillPixel(pixels[key].x, pixels[key].y, pixels[key].color);
             }
         }
+
+
+        function previewAvatar(input) {
+            const preview = document.getElementById('avatar-preview');
+            const file = input.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Trebuchet MS' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EИзображение%3C/text%3E%3C/svg%3E";
+            }
+        }
+        
+        
+        $('#close-form')[0].addEventListener('click', function(e){
+            $('#setting-dialog')[0].close();
+        });
+
+
+        async function openSettingsForm(){
+            $('#email')[0].value = null;
+            $('#avatar')[0].value = null;
+            $('#avatar-preview')[0].src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Trebuchet MS' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EПревью%3C/text%3E%3C/svg%3E";
+            var dialog = $("#setting-dialog")[0];
+            var statusDivs = $(dialog).find('.status');
+            for (i=0;i<statusDivs.length;i++){
+                statusDivs[i].className = 'status';
+                statusDivs[i].innerText = '';
+            }
+            dialog.showModal();
+        };
+
+        $('form').each(function(index, element){
+            element.addEventListener('submit', function(e){
+                e.preventDefault(); 
+                const formData = new FormData(this);
+                fetch( e.currentTarget.id == 'update-email' ? '/updateEmail' : '/updateAvatar', {
+                    method: 'POST',
+                    body: formData,
+                }).then(response => {
+                    var parentDiv = e.currentTarget.parentElement;
+                    var statusDiv = $(parentDiv).find('.status')[0];
+                        
+                    if (response.ok){
+                        statusDiv.className += ' success';
+                        statusDiv.innerText = 'Данные успешно обновлены'
+                    } else {
+                        statusDiv.className += ' fail';
+                        statusDiv.innerText = 'Произошла ошибка: ' + text;
+                    }
+                })
+            })
+        })
     </script>
 
 </html>
