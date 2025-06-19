@@ -596,7 +596,6 @@
 
         socket.onmessage = function(event) {
             var data = JSON.parse(event.data);
-            console.log(data);
             if (data.type == 'init'){
                 var payload = data.payload;
                 var canvas = payload.canvas;
@@ -731,8 +730,11 @@
             dialog.showModal();
         };
 
-        $('form').each(function(index, element){
-            element.addEventListener('submit', function(e){
+        forms = $('form');
+        for (i in formd)
+        {
+            console.log(forms[i])
+            forms[i].addEventListener('submit', function(e){
                 e.preventDefault(); 
                 const formData = new FormData(this);
                 fetch( e.currentTarget.id == 'update-email' ? '/updateEmail' : '/updateAvatar', {
@@ -751,7 +753,7 @@
                     }
                 })
             })
-        })
+        }
     </script>
 
 </html>
