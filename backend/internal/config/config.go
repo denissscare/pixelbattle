@@ -75,12 +75,28 @@ func LoadConfig() *Config {
 	viper.AutomaticEnv()
 
 	viper.BindEnv("environment", "ENVIRONMENT")
+
+	// Server
 	viper.BindEnv("server.host", "SERVER_HOST")
 	viper.BindEnv("server.port", "SERVER_PORT")
+	viper.BindEnv("server.timeout", "SERVER_TIMEOUT")
+	viper.BindEnv("server.idle_timeout", "SERVER_IDLE_TIMEOUT")
+	viper.BindEnv("server.canvas_timeout", "SERVER_CANVAS_TIMEOUT")
+
+	// Redis
+	viper.BindEnv("redis.host", "REDIS_HOST")
+	viper.BindEnv("redis.port", "REDIS_PORT")
 	viper.BindEnv("redis.password", "REDIS_PASSWORD")
 	viper.BindEnv("redis.user", "REDIS_USER")
+	viper.BindEnv("redis.db", "REDIS_DB")
+	viper.BindEnv("redis.max_retries", "REDIS_MAX_RETRIES")
+	viper.BindEnv("redis.dial_timeout", "REDIS_DIAL_TIMEOUT")
+	viper.BindEnv("redis.timeout", "REDIS_TIMEOUT")
+
+	// NATS
 	viper.BindEnv("nats.url", "NATS_URL")
 
+	// Postgres
 	viper.BindEnv("postgres.host", "POSTGRES_HOST")
 	viper.BindEnv("postgres.port", "POSTGRES_PORT")
 	viper.BindEnv("postgres.user", "POSTGRES_USER")
@@ -88,6 +104,7 @@ func LoadConfig() *Config {
 	viper.BindEnv("postgres.dbname", "POSTGRES_DB")
 	viper.BindEnv("postgres.sslmode", "POSTGRES_SSLMODE")
 
+	// Minio
 	viper.BindEnv("minio.endpoint", "MINIO_ENDPOINT")
 	viper.BindEnv("minio.public", "MINIO_PUBLIC_HOST")
 	viper.BindEnv("minio.access_key", "MINIO_ACCESS_KEY")
