@@ -30,20 +30,20 @@ func LoginHandler(svc *auth.Service, log *logger.Logger, minioHost string) http.
 		var req LoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			log.Errorf("HTTP POST /login bad payload: %v", err)
-			http.Error(w, "invalid request", http.StatusBadRequest)
+			http.Error(w, "Bad payload", http.StatusBadRequest)
 			return
 		}
 
 		if req.EmailOrUsername == "" || req.Password == "" {
 			log.Infof("HTTP POST /login missing fields: %+v", req)
-			http.Error(w, "missing fields", http.StatusBadRequest)
+			http.Error(w, "Заполните все поля", http.StatusBadRequest)
 			return
 		}
 
 		user, token, err := svc.Login(req.EmailOrUsername, req.Password)
 		if err != nil {
 			log.Infof("HTTP POST /login failed for user %s: %v", req.EmailOrUsername, err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, "Не удалось выполнить вход. Логин или пароль некорректны.", http.StatusUnauthorized)
 			return
 		}
 

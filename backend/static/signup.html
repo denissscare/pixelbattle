@@ -105,12 +105,85 @@
             height: 100%;
             cursor: pointer;
         }
+        .toast {
+            z-index: 1002;
+            display: none;
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            max-width: 300px;
+            background: #fff;
+            padding: 0.5rem;
+            box-shadow: -1px 1px 10px rgba(0,0,0,0.3);
+            z-index: 1023;
+            animation: slideInRight 0.3s
+                        ease-in-out forwards,
+                        fadeOut 0.5s ease-in-out
+                        forwards 3s;
+            transform: translateX(110%);
+            }
+            .toast.closing{
+            animation: slideOutRight 0.5s
+                        ease-in-out forwards;
+            }
+            .toast-progress{
+            position: absolute;
+            display: block;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: #4CAF50;
+            animation: toastProgress 3s
+                        ease-in-out forwards;
+            }
+            @keyFrames slideInRight{
+            0% {
+                transform: translateX(110%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(0%);
+            }
+            }
+
+            @keyFrames slideOutRight{
+            0% {
+                transform: translateX(0%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(110%);
+            }
+            }
+
+            @keyFrames fadeOut{
+            0% {
+                opacity: 1;
+            }
+            100%{
+                opacity: 0;
+            }
+            }
+
+            @keyFrames toastProgress{
+            0% {
+                width: 100%;
+            }
+            100%{
+                width: 0%;
+            }
+            }
     </style>
 </head>
 <body>
     <div class="auth-container">
         <h2>Регистрация</h2>
-        <form action="/register", enctype="multipart/form-data", method="post">
+        <form>
             <div class="form-group">
                 <label for="avatar">Аватар (необязательно):</label>
                 <img id="avatar-preview" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Arial' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EИзображение%3C/text%3E%3C/svg%3E" 
@@ -139,8 +212,10 @@
             <button type="submit">Зарегистрироваться</button>
         </form>
         <div class="login-link">
-            <p>Уже есть аккаунт? <a href="/signin">Войдите</a></p>
+            <p>Уже есть аккаунт? <a href="/login">Войдите</a></p>
         </div>
+    <div class="toast"></div>
+
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -160,6 +235,48 @@
             } else {
                 preview.src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Arial' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EИзображение%3C/text%3E%3C/svg%3E";
             }
+        }
+
+        $('form')[0].addEventListener('submit', function(e){
+            e.preventDefault(); 
+            const formData = new FormData(this);
+            const password = formData.get('password');
+            if (password != formData.get('confirmPassword')){
+                showToast('Введенные пароли не совпадают')
+                return
+            }
+
+            if (password.length < 8){
+                showToast('Пароль должен состоять минимум из 8 знаков')
+                return
+            }
+
+            fetch('/register', {
+                method: 'POST',
+                body: formData,
+            }).then(response => {
+                if (response.ok){
+                    window.location.href = '/login'
+                } else {
+                    response.text().then(text => showToast(text))
+                }
+            })
+        })
+
+        function showToast(errorText, duration){
+            if ($('.toast').length != 0){$('.toast').remove()}
+            box = document.createElement('div');
+            toast = document.createElement('div');
+            toast.className = "toast"
+            toast.innerText = errorText;
+            box.className = "toast-progress";
+
+            duration = duration || 5000;
+            toast.style.animationDuration = `${duration / 1000}`;
+            box.style.animationDuration = `${duration / 1000}`;
+            toast.appendChild(box);
+            toast.style.display = 'block';
+            $('body')[0].appendChild(toast);
         }
     </script>
 </body>
