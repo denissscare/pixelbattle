@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"mime/multipart"
+	"path/filepath"
 	"pixelbattle/internal/auth/domain"
 	storage "pixelbattle/internal/auth/storage/postgres"
 	"pixelbattle/internal/s3"
 	"pixelbattle/pkg/hash"
 	jwtutil "pixelbattle/pkg/jwt"
 	"pixelbattle/pkg/logger"
+	"strings"
 )
 
 type Service struct {
@@ -56,17 +58,16 @@ func (s *Service) Login(emailOrUsername, password string) (*domain.User, string,
 	if err != nil {
 		return nil, "", err
 	}
-
 	return user, token, nil
 }
 
 func (s *Service) RegisterWithID(username, email, password string) (int, error) {
 	if _, err := s.repo.GetUserByEmail(email); err == nil {
-		return 0, errors.New("Почта занята")
+		return 0, errors.New("почта занята")
 	}
 
 	if _, err := s.repo.GetUserByUsername(username); err == nil {
-		return 0, errors.New("Логин занят")
+		return 0, errors.New("логин занят")
 	}
 
 	hash, err := hash.HashPassword(password)
@@ -82,7 +83,11 @@ func (s *Service) UpdateAvatarURL(userID int, url string) error {
 }
 
 func (s *Service) UploadAvatar(ctx context.Context, userID int, fileHeader *multipart.FileHeader) error {
-	objectName := fmt.Sprintf("avatars/%d_%s", userID, fileHeader.Filename)
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if ext == "" {
+		ext = ".jpg"
+	}
+	objectName := fmt.Sprintf("%d%s", userID, ext)
 
 	_, err := s.s3Client.UploadFile(ctx, fileHeader, objectName)
 	if err != nil {
@@ -93,4 +98,11 @@ func (s *Service) UploadAvatar(ctx context.Context, userID int, fileHeader *mult
 		return fmt.Errorf("db update error: %w", err)
 	}
 	return nil
+}
+
+func (s *Service) UpdateEmail(userID int, email string) error {
+	if _, err := s.repo.GetUserByEmail(email); err == nil {
+		return errors.New("почта уже используется")
+	}
+	return s.repo.UpdateEmail(userID, email)
 }

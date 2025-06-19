@@ -11,6 +11,7 @@ type UserRepo interface {
 	CreateUser(username, email, hash string) error
 	CreateUserReturningID(username, email, hash string) (int, error)
 	UpdateAvatarURL(id int, url string) error
+	UpdateEmail(userID int, email string) error
 }
 
 type Repository struct {
@@ -58,4 +59,9 @@ func (r *Repository) CreateUserReturningID(username, email, password string) (in
 		username, email, password,
 	).Scan(&id)
 	return id, err
+}
+
+func (r *Repository) UpdateEmail(userID int, email string) error {
+	_, err := r.db.Exec(`UPDATE users SET email = $1 WHERE id = $2`, email, userID)
+	return err
 }
