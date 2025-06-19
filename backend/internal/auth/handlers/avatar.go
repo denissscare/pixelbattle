@@ -3,12 +3,13 @@ package handlers
 import (
 	"net/http"
 	auth "pixelbattle/internal/auth/service"
+	"pixelbattle/internal/middleware"
 	"pixelbattle/pkg/logger"
 )
 
 func UploadAvatarHandler(authSvc *auth.Service, log *logger.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userIDVal := r.Context().Value("userID")
+		userIDVal := r.Context().Value(middleware.UserIDKey)
 		if userIDVal == nil {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
