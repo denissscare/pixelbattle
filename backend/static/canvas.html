@@ -607,7 +607,7 @@
                     fillPixel(canvas[key].x, canvas[key].y, canvas[key].color);
                 }
             } else if (data.type == 'update'){
-                if ((data.payload.x +':'+data.payload.y) in pixels && pixels[(data.payload.x +':'+data.payload.y)].color !== data.payload.color){
+                if (!((data.payload.x +':'+data.payload.y) in pixels) || pixels[(data.payload.x +':'+data.payload.y)].color !== data.payload.color){
                     fillPixel(data.payload.x, data.payload.y, data.payload.color);
                 }
             } 
