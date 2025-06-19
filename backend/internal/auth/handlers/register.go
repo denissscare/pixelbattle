@@ -28,7 +28,7 @@ func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger)
 
 		if err := r.ParseMultipartForm(10 << 20); err != nil {
 			log.Errorf("HTTP POST /register: cannot parse multipart form: %v", err)
-			http.Error(w, "cannot parse multipart form", http.StatusBadRequest)
+			http.Error(w, "Не удалось загрузить форму", http.StatusBadRequest)
 			return
 		}
 
@@ -37,7 +37,7 @@ func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger)
 		password := r.FormValue("password")
 		if username == "" || email == "" || password == "" {
 			log.Infof("HTTP POST /register: missing fields: username=%s, email=%s", username, email)
-			http.Error(w, "missing fields", http.StatusBadRequest)
+			http.Error(w, "Заполнены не все поля", http.StatusBadRequest)
 			return
 		}
 
@@ -57,12 +57,12 @@ func RegisterHandler(s3Client *s3.Client, svc *auth.Service, log *logger.Logger)
 
 			if err != nil {
 				log.Errorf("avatar upload: s3 error: %v", err)
-				http.Error(w, "upload error", http.StatusInternalServerError)
+				http.Error(w, "Ошибка загрузки", http.StatusInternalServerError)
 				return
 			}
 			if err := svc.UpdateAvatarURL(userID, objectName); err != nil {
 				log.Errorf("avatar upload: update db error: %v", err)
-				http.Error(w, "db error", http.StatusInternalServerError)
+				http.Error(w, "Ошибка на стороне сервера", http.StatusInternalServerError)
 				return
 			}
 			log.Infof("avatar uploaded: userID=%d, file=%s", userID, fileHeader.Filename)
