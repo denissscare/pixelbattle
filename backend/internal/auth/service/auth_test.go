@@ -23,6 +23,7 @@ type mockRepo struct {
 	createID          int
 	createUserIDEerr  error
 	updateAvatarErr   error
+	updateEmailErr    error
 }
 
 func (m *mockRepo) GetUserByEmail(email string) (*domain.User, error) {
@@ -39,6 +40,9 @@ func (m *mockRepo) CreateUserReturningID(username, email, hash string) (int, err
 }
 func (m *mockRepo) UpdateAvatarURL(id int, url string) error {
 	return m.updateAvatarErr
+}
+func (m *mockRepo) UpdateEmail(userID int, email string) error {
+	return m.updateEmailErr
 }
 
 type mockJWT struct {
@@ -204,6 +208,45 @@ func TestUploadAvatarDBError(t *testing.T) {
 	fileHeader := &multipart.FileHeader{Filename: "avatar.png"}
 	err := svc.UploadAvatar(context.Background(), 1, fileHeader)
 	if err == nil || err.Error() != "db update error: db fail" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestUpdateEmailSuccess(t *testing.T) {
+	repo := &mockRepo{
+		getByEmailErr:  errors.New("not found"),
+		updateEmailErr: nil,
+	}
+	svc := newService(repo, &mockJWT{}, &mockS3{})
+
+	err := svc.UpdateEmail(1, "new@mail.com")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestUpdateEmailEmailExists(t *testing.T) {
+	repo := &mockRepo{
+		getByEmailUser: &domain.User{ID: 2, Email: "new@mail.com"},
+		getByEmailErr:  nil,
+	}
+	svc := newService(repo, &mockJWT{}, &mockS3{})
+
+	err := svc.UpdateEmail(1, "new@mail.com")
+	if err == nil || err.Error() != "почта уже используется" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestUpdateEmailRepoError(t *testing.T) {
+	repo := &mockRepo{
+		getByEmailErr:  errors.New("not found"),
+		updateEmailErr: errors.New("fail"),
+	}
+	svc := newService(repo, &mockJWT{}, &mockS3{})
+
+	err := svc.UpdateEmail(1, "new@mail.com")
+	if err == nil || err.Error() != "fail" {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
