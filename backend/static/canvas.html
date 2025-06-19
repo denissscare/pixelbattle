@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Battle Canvas</title>
+    <title>PixelBattle for Cringe and Deranged Kids</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Trebuchet MS', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -14,19 +14,33 @@
             overflow-x: hidden;
             overflow-y: hidden;
             margin:0px;
+            background-color: #e5e5f7;
+            background-image:  repeating-linear-gradient(45deg, #4caf4f75 25%, transparent 25%, transparent 75%, #4caf4f75 75%, #4caf4f75), repeating-linear-gradient(45deg, #4caf4f75 25%, #e5e5f7 25%, #e5e5f7 75%, #4caf4f75 75%, #4caf4f75);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
         }
         
         h1 {
+            font-size: 40px;
             color: #333;
+            margin: 10px
         }
-        
+        h2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         #profile-pic-div{
             text-align:center;
+            vertical-align: middle;
             height: 100px;
+            border: solid 3px#4CAF50;
+            border-radius: 3px;
+            margin: 0px 10px 10px 10px
         }
 
         #profile-pic{
-            height: fit-content;
+            height: inherit;
         }
 
         #title{
@@ -51,6 +65,8 @@
             color: white;
             border: none;
             border-radius: 4px;
+            width: 90%;
+            margin: 8px;
         }
         
         button:hover {
@@ -60,45 +76,217 @@
         .top-panel{
             z-index: 1000;
             background-color: #eee;
-            width: 90%;
-            height: 150px;
+            width: 87%;
+            height: 190px;
             margin: 0px;
-            border: solid 1px #333;
-            border-radius: 5px;
+            border: solid 1px #747474;
+            border-radius: 0px 0px 7px 7px;
         }
         .right-panel{
             z-index: 1000;
             background-color: #eee;
-            height: 150px;
-            width: 10%;
+            height: 190px;
+            width: 13%;
             margin: 0px;
-            border: solid 1px #333;
-            border-radius: 5px;
+            border: solid 1px #747474;
+            border-radius: 0px 0px 7px 7px;
+            text-align: center;
         }
         .tools{
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
             width: 100%;
         }
+
         .user-info{
             display: flex;
             justify-content: start;
         }
-
-        .canvas-container {
-            margin-top: 10px;
-            border: 2px solid #333;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            overflow-x: auto;
-            overflow-y: auto;
-            width: 90vw;
-            height: 80vh;
-        }
         
         #pixelCanvas {
             position: absolute;
+            box-shadow: 0 0 14px rgba(0, 0, 0, 0.1);
+            background-color: #F0F0F0;
         }
 
+        .logout{
+            margin-top: 10px;
+            background-color: #c4492a;
+        }
+        .logout:hover{
+            background-color: #a33c23;
+        }
 
+        .toast {
+            z-index: 1002;
+            display: none;
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            max-width: 300px;
+            background: #fff;
+            padding: 0.5rem;
+            box-shadow: -1px 1px 10px rgba(0,0,0,0.3);
+            z-index: 1023;
+            animation: slideInRight 0.3s
+                        ease-in-out forwards,
+                        fadeOut 0.5s ease-in-out
+                        forwards 3s;
+            transform: translateX(110%);
+            }
+            .toast.closing{
+            animation: slideOutRight 0.5s
+                        ease-in-out forwards;
+            }
+            .toast-progress{
+            position: absolute;
+            display: block;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: #4CAF50;
+            animation: toastProgress 3s
+                        ease-in-out forwards;
+            }
+            @keyFrames slideInRight{
+            0% {
+                transform: translateX(110%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(0%);
+            }
+            }
+
+            @keyFrames slideOutRight{
+            0% {
+                transform: translateX(0%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(110%);
+            }
+            }
+
+            @keyFrames fadeOut{
+            0% {
+                opacity: 1;
+            }
+            100%{
+                opacity: 0;
+            }
+            }
+
+            @keyFrames toastProgress{
+            0% {
+                width: 100%;
+            }
+            100%{
+                width: 0%;
+            }
+            }
+            .dialog-header{
+                display: flex;
+                justify-content: space-between;
+                color: #4CAF50;
+                font-family: 'Trebuchet MS', sans-serif;
+            }
+            .dialog-header .dialog-title{
+                margin-top: 10px;
+                display: inline-block;
+                font-size: 28px;
+                font-weight: 900;
+            }
+            .dialog-header .close-btn-div{
+                display: inline-block;
+            }
+            .dialog-header button{
+                margin-left: 10px;
+            }
+            .dialog-window{
+                font-family: 'Trebuchet MS', sans-serif;
+                border: solid 1px #4CAF50;
+                border-radius: 5px;
+            }
+            .dialog-form label{
+                font-family: 'Trebuchet MS', sans-serif;
+                font-weight: bolder;
+                color: #4CAF50;
+            }
+
+            .dialog-body{
+                display: flex;
+                justify-content: space-between;
+                color: #4CAF50;
+                font-family: 'Trebuchet MS', sans-serif;
+                height: fit-content;
+                
+            }
+            .setting{
+                display: flex;
+                flex-direction: column;
+                width: 50%;
+                height: 250px;
+            }
+            .setting-header{
+                height: 68px;
+            }
+            .setting-body{
+                text-align: center;
+                flex-grow: 1;
+            }
+            .form-button{
+                margin-top: auto;
+            }
+            input[type="text"],
+            input[type="password"] {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-sizing: border-box;
+            }
+            .create-dialog-header{
+                text-align: right;
+            }
+            .delimeter{
+                width: 0px;
+                border: dashed 2px #4CAF50 ;
+                height: 250px;
+                margin: 0px 20px 0px 10px
+            }
+            #update-email{
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            #update-pp{
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            .success{
+                color: #4CAF50;
+                border: dashed 2px #4CAF50;
+            }
+            .fail{
+                color: #c4492a;
+                border: dashed 2px #c4492a;
+            }
+            .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+            border: 2px solid #ddd;
+        }
         .toast {
             z-index: 1002;
             display: none;
@@ -177,30 +365,66 @@
 <body>
     <div class="tools">
         <div class="top-panel">
-            <h1 id="title">Pixel Battle</h1>
+            <h1 id="title">PixelBattle for Cringe and Deranged Kids</h1>
             <div class="user-info">
                 <div id="profile-pic-div"></div>
                 <h2 id="username"></h2>
             </div>
         </div>
         <div class="right-panel">
-            <button type="button" id="logout" onclick="logoutPB()">Выход</button>
+            <button type="button" class="logout" onclick="logoutPB()">Выход</button>
+            <button type="button" id="grit" onclick="toggleGrit()">Сетка</button>
             <input type="color" class="color-picker" value="#ff0000" id="colorPicker">
+            <button type="button" id="settings" onclick="openSettingsForm()">Настройки</button>
         </div>
     </div>
     <canvas id="pixelCanvas"></canvas>
     <div class="toast"></div>
+
+    <dialog id="setting-dialog" class="dialog-window">
+        <div class="dialog-header">
+            <div class="dialog-title">Настройки</div>
+            <div class="close-btn-div"><button id="close-form" class="logout">×</button></div>
+        </div>
+        <div class="dialog-body"> 
+            <div class="setting">
+                <div class="setting-header"><h2>Обновить почту</h2></div>
+                <div class="setting-body">
+                    <form id="update-email">                    
+                        <input type="email" id="email" name="email" required>
+                        <div class="status"></div>
+                        <button class="form-button" type="submit">Обновить</button>
+                    </form>
+                </div>
+            </div>
+            <div class="delimeter"></div>
+            <div class="setting">
+                <div class="setting-header"><h2>Обновить аватар</h2></div>
+                <div class="setting-body">
+                    <form id="update-pp">
+                        <input type="file" id="avatar" name="avatar" accept="image/*" onchange="previewAvatar(this)" required>
+                        <img id="avatar-preview" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Trebuchet MS' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EПревью%3C/text%3E%3C/svg%3E" 
+                     alt="Предпросмотр аватара" class="avatar-preview">
+                        <div class="status"></div>
+                        <button class="form-button" type="submit">Обновить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    </dialog>
 </body>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         const address = window.location.href.replace('http://', '').replace('https://', '').split('/')[0];
+        let pixels = {};
         let pixelTimeout = null;
         let lastPixelTime = null;
         let socket = new WebSocket("ws://" + address + "/ws?username=" + localStorage.username);
         var pixelSize = 15;
-        var canvasSize = 200;
-
+        var canvasSize = 300;
+        let selectedPixel = null;
         let zoom = 1;
 
         let isRightMouseDown = false;
@@ -208,6 +432,7 @@
         let startY = 0;
 
         let canvas = null;
+        let grit = true;
 
         document.addEventListener('DOMContentLoaded', function() {
             let usernameHeader = $('#username')[0];
@@ -220,37 +445,9 @@
             canvas = document.getElementById('pixelCanvas');
             canvas.width = canvasSize * pixelSize;
             canvas.height = canvasSize * pixelSize;
-            const ctx = canvas.getContext('2d');
             const colorPicker = document.getElementById('colorPicker');
             
             let currentColor = colorPicker.value;
-            
-            function initCanvas() {
-                canvas.innerHTML = '';
-                ctx.strokeStyle = '#666';
-                ctx.lineWidth = 0.5;
-                
-                for (let x = 0; x <= canvas.width; x += pixelSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
-                    ctx.stroke();
-                }
-                
-                for (let y = 0; y <= canvas.height; y += pixelSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(canvas.width, y);
-                    ctx.stroke();
-                }
-
-                canvas.addEventListener('click', (e) => {
-                    const rect = canvas.getBoundingClientRect();
-                    const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
-                    const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
-                    fillPixel(x, y);
-                });
-            }
             
             colorPicker.addEventListener('input', function() {
                 currentColor = this.value;
@@ -259,6 +456,41 @@
             initCanvas();
         });
 
+        function initCanvas() {
+            
+            redrawCanvas();
+
+            
+            canvas.addEventListener('click', (e) => {
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize);
+                const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize);
+                fillPixel(x, y);
+            });
+            canvas.addEventListener('mousemove', (e) => {
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / zoom / pixelSize) * pixelSize;
+                const y = Math.floor((e.clientY - rect.top) / zoom / pixelSize) * pixelSize;
+
+                if (selectedPixel == null || selectedPixel[0] !== x || selectedPixel[1] !== y){ 
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    redrawCanvas();
+
+                    ctx.strokeStyle = '#333';
+                    ctx.beginPath();
+                    ctx.moveTo(x            , y);
+                    ctx.lineTo(x + pixelSize, y);
+                    ctx.lineTo(x + pixelSize, y + pixelSize);
+                    ctx.lineTo(x            , y + pixelSize);
+                    ctx.lineTo(x            , y);
+                    ctx.stroke();
+                    selectedPixel = [x, y];
+                }
+            });
+        }
 
         document.addEventListener("wheel", function(e) {  
             let maxZoom = 2;
@@ -299,17 +531,19 @@
             } else {
                 ctx.fillStyle = color;
             }
+            pixels[(x+":"+y)] = {"x": x, "y": y, "color": ctx.fillStyle};
 
             ctx.fillRect(pixelX, pixelY, pixelSize, pixelSize);
-            ctx.strokeStyle = '#666';
-            ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+            if (grit){
+                ctx.strokeStyle = '#AAA';
+                ctx.strokeRect(pixelX, pixelY, pixelSize, pixelSize);
+            }
             if (color == null) {
                 fetch(
                     'http://' + address + '/pixel',
                     {
                         method: 'POST',
                         body: JSON.stringify({"X": x, "Y": y, "Color": currentColor, "Author": localStorage.username}),
-
                     }
                 )
             }
@@ -369,9 +603,12 @@
                     fillPixel(canvas[key].x, canvas[key].y, canvas[key].color);
                 }
             } else if (data.type == 'update'){
-                fillPixel(data.payload.x, data.payload.y, data.payload.color);
+                if ((data.payload.x +':'+data.payload.y) in pixels && pixels[(data.payload.x +':'+data.payload.y)].color !== data.payload.color){
+                    fillPixel(data.payload.x, data.payload.y, data.payload.color);
+                }
             } 
         };
+
 
         function logoutPB(){
             let now = new Date()
@@ -399,6 +636,118 @@
             toast.style.display = 'block';
             $('body')[0].appendChild(toast);
         }
+      
+        function toggleGrit(){
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            grit = !grit;
+            redrawCanvas();
+        }
+
+        function drawOutline(){
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 0.5;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(canvas.width, 0);
+            ctx.lineTo(0, 0);
+            ctx.stroke();
+        }
+
+        function redrawCanvas(){
+            const ctx = canvas.getContext('2d');
+            canvas.innerHTML = '';
+            ctx.strokeStyle = '#AAA';
+            ctx.lineWidth = 0.5;
+            if (grit){
+                ctx.strokeStyle = '#AAA';
+                ctx.lineWidth = 0.5;
+
+                for (let x = 0; x <= canvas.width; x += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                    
+                for (let y = 0; y <= canvas.height; y += pixelSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+            } else {
+                drawOutline();
+            }
+
+            var keys = Object.keys(pixels);
+            for (var key of keys){
+                fillPixel(pixels[key].x, pixels[key].y, pixels[key].color);
+            }
+        }
+
+
+        function previewAvatar(input) {
+            const preview = document.getElementById('avatar-preview');
+            const file = input.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Trebuchet MS' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EИзображение%3C/text%3E%3C/svg%3E";
+            }
+        }
+        
+        
+        $('#close-form')[0].addEventListener('click', function(e){
+            $('#setting-dialog')[0].close();
+        });
+
+
+        async function openSettingsForm(){
+            $('#email')[0].value = null;
+            $('#avatar')[0].value = null;
+            $('#avatar-preview')[0].src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Trebuchet MS' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EПревью%3C/text%3E%3C/svg%3E";
+            var dialog = $("#setting-dialog")[0];
+            var statusDivs = $(dialog).find('.status');
+            for (i=0;i<statusDivs.length;i++){
+                statusDivs[i].className = 'status';
+                statusDivs[i].innerText = '';
+            }
+            dialog.showModal();
+        };
+
+        $('form').each(function(index, element){
+            element.addEventListener('submit', function(e){
+                e.preventDefault(); 
+                const formData = new FormData(this);
+                fetch( e.currentTarget.id == 'update-email' ? '/updateEmail' : '/updateAvatar', {
+                    method: 'POST',
+                    body: formData,
+                }).then(response => {
+                    var parentDiv = e.currentTarget.parentElement;
+                    var statusDiv = $(parentDiv).find('.status')[0];
+                        
+                    if (response.ok){
+                        statusDiv.className += ' success';
+                        statusDiv.innerText = 'Данные успешно обновлены'
+                    } else {
+                        statusDiv.className += ' fail';
+                        statusDiv.innerText = 'Произошла ошибка: ' + text;
+                    }
+                })
+            })
+        })
     </script>
 
 </html>
