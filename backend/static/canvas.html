@@ -287,6 +287,79 @@
             display: block;
             border: 2px solid #ddd;
         }
+        .toast {
+            z-index: 1002;
+            display: none;
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            max-width: 300px;
+            background: #fff;
+            padding: 0.5rem;
+            box-shadow: -1px 1px 10px rgba(0,0,0,0.3);
+            z-index: 1023;
+            animation: slideInRight 0.3s
+                        ease-in-out forwards,
+                        fadeOut 0.5s ease-in-out
+                        forwards 3s;
+            transform: translateX(110%);
+            }
+            .toast.closing{
+            animation: slideOutRight 0.5s
+                        ease-in-out forwards;
+            }
+            .toast-progress{
+            position: absolute;
+            display: block;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: #b7b7b7;
+            animation: toastProgress 3s
+                        ease-in-out forwards;
+            }
+            @keyFrames slideInRight{
+            0% {
+                transform: translateX(110%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(0%);
+            }
+            }
+
+            @keyFrames slideOutRight{
+            0% {
+                transform: translateX(0%);
+            }
+            75% {
+                transform: translateX(-10%);
+            }
+            100% {
+                transform: translateX(110%);
+            }
+            }
+
+            @keyFrames fadeOut{
+            0% {
+                opacity: 1;
+            }
+            100%{
+                opacity: 0;
+            }
+            }
+
+            @keyFrames toastProgress{
+            0% {
+                width: 100%;
+            }
+            100%{
+                width: 0%;
+            }
+            }
     </style>
 </head>
 <body>
@@ -307,6 +380,7 @@
     </div>
     <canvas id="pixelCanvas"></canvas>
     <div class="toast"></div>
+
     <dialog id="setting-dialog" class="dialog-window">
         <div class="dialog-header">
             <div class="dialog-title">Настройки</div>
@@ -547,7 +621,6 @@
             window.location.href="/";
         }
 
-
         function showToast(errorText, duration){
             if ($('.toast').length != 0){$('.toast').remove()}
             box = document.createElement('div');
@@ -563,8 +636,7 @@
             toast.style.display = 'block';
             $('body')[0].appendChild(toast);
         }
-
-
+      
         function toggleGrit(){
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
